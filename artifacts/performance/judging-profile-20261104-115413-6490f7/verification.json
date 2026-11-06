@@ -1,0 +1,92 @@
+{
+  "api": {
+    "run_id": "perf_30e1e8fad3",
+    "fixture_accounts": 30,
+    "fixture_accounts_disabled": 30,
+    "fixture_classes_remaining": 0,
+    "pending_jobs": {
+      "Attempt": 0,
+      "ValidationJob": 0
+    },
+    "dispatch_interval_seconds": 1.0,
+    "api_profiling_enabled": false,
+    "worker_pool_concurrency": [
+      1,
+      50
+    ]
+  },
+  "runner": {
+    "runner_slots": 50,
+    "profiling_enabled": false,
+    "sandbox_image": "judgementsystem-sandbox:gcc12-v2"
+  },
+  "restored_services": {
+    "runner": {
+      "image": "sha256:ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+      "command": [
+        "uvicorn",
+        "runner.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8001",
+        "--workers",
+        "1"
+      ]
+    },
+    "worker": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=50",
+        "--prefetch-multiplier=1",
+        "--queues=celery"
+      ]
+    },
+    "scheduler": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "beat",
+        "--loglevel=INFO",
+        "--schedule=/tmp/celerybeat-schedule"
+      ]
+    },
+    "api": {
+      "image": "sha256:56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+      "command": [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ]
+    },
+    "validator": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=1",
+        "--prefetch-multiplier=1",
+        "--queues=validation"
+      ]
+    }
+  },
+  "backend_tests_passed": 100,
+  "disposable_mariadb_tests_passed": 4,
+  "sandbox_and_audit_containers_remaining": 0,
+  "trace_jobs_joined": 64,
+  "worker_deliveries": 64,
+  "configured_secret_scan": "passed"
+}

@@ -1,0 +1,146 @@
+{
+  "database": {
+    "attempts": 5,
+    "fixture_accounts": 150,
+    "fixture_accounts_disabled": 150,
+    "fixture_classes_remaining": 0,
+    "pending_jobs": {
+      "Attempt": 0,
+      "ValidationJob": 0
+    },
+    "worker_pool_concurrency": [
+      1,
+      50
+    ],
+    "dispatch_interval_seconds": 1.0,
+    "verification_process_profiling_enabled": false
+  },
+  "runner": {
+    "runner_slots": 50,
+    "profiling_enabled": false,
+    "sandbox_image": "judgementsystem-sandbox:gcc12-v2"
+  },
+  "api": {
+    "api_profiling_enabled": false
+  },
+  "restored_services": {
+    "scheduler": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "beat",
+        "--loglevel=INFO",
+        "--schedule=/tmp/celerybeat-schedule"
+      ]
+    },
+    "runner": {
+      "image": "sha256:ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+      "command": [
+        "uvicorn",
+        "runner.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8001",
+        "--workers",
+        "1"
+      ]
+    },
+    "worker": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=50",
+        "--prefetch-multiplier=1",
+        "--queues=celery"
+      ]
+    },
+    "api": {
+      "image": "sha256:56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+      "command": [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ]
+    },
+    "validator": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=1",
+        "--prefetch-multiplier=1",
+        "--queues=validation"
+      ]
+    }
+  },
+  "main_jobs_planned": 320,
+  "main_jobs_completed_with_expected_verdict": 319,
+  "complete_ranked_cohorts": 4,
+  "failed_attempts_preserved": 1,
+  "warnings": {
+    "slot-sweep-20261104-122722-9e1850-slots-4": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    },
+    "slot-sweep-20261104-122722-9e1850-slots-8": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    },
+    "slot-sweep-20261104-122722-9e1850-slots-8-retry-0ca325": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    },
+    "slot-sweep-20261104-122722-9e1850-slots-12": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    },
+    "slot-sweep-20261104-122722-9e1850-slots-16": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    }
+  },
+  "measurement_notes": {
+    "slot-sweep-20261104-122722-9e1850-slots-4": [],
+    "slot-sweep-20261104-122722-9e1850-slots-8": [],
+    "slot-sweep-20261104-122722-9e1850-slots-8-retry-0ca325": [
+      {
+        "attempt_id": "011b6dec-27a9-447d-890f-93e85fe4f713",
+        "type": "commit_observed_after_publication",
+        "overlap_ms": 1.118461
+      }
+    ],
+    "slot-sweep-20261104-122722-9e1850-slots-12": [],
+    "slot-sweep-20261104-122722-9e1850-slots-16": [
+      {
+        "attempt_id": "2321932c-62f7-4663-b501-8623c7417622",
+        "type": "commit_observed_after_publication",
+        "overlap_ms": 22.076935
+      },
+      {
+        "attempt_id": "0faefed8-a6c3-4285-a24d-b7459605828c",
+        "type": "commit_observed_after_publication",
+        "overlap_ms": 30.661815
+      }
+    ]
+  },
+  "sandbox_containers_remaining": 0,
+  "configured_secret_scan": "passed"
+}

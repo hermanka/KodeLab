@@ -1,0 +1,66 @@
+[
+  {
+    "attempt_id": "c77f2268-63fd-46a5-952f-76fccc4d62f5",
+    "language": "c17",
+    "mode": "run",
+    "repeat": 0,
+    "start_ns": 1793775013582722052,
+    "duration_ms": 1233.276
+  },
+  {
+    "attempt_id": "414d500f-ee60-4cfb-be16-592dcd3d188d",
+    "language": "c17",
+    "mode": "judge",
+    "repeat": 0,
+    "start_ns": 1793775014816225097,
+    "duration_ms": 3367.62
+  },
+  {
+    "attempt_id": "316d7cf6-a8c2-4d19-9e9c-96d304b60894",
+    "language": "cpp17",
+    "mode": "run",
+    "repeat": 0,
+    "start_ns": 1793775018184022260,
+    "duration_ms": 1804.832
+  },
+  {
+    "attempt_id": "a23f3b0a-f47f-48ec-b9b4-da4eaf6525a8",
+    "language": "cpp17",
+    "mode": "judge",
+    "repeat": 0,
+    "start_ns": 1793775019989132949,
+    "duration_ms": 3988.559
+  },
+  {
+    "attempt_id": "790584b0-0745-4b31-b793-8331c6784c94",
+    "language": "c17",
+    "mode": "run",
+    "repeat": 1,
+    "start_ns": 1793775023977864213,
+    "duration_ms": 1220.811
+  },
+  {
+    "attempt_id": "d3d55ba3-14f4-4b9c-a5a4-10dacdd2d238",
+    "language": "c17",
+    "mode": "judge",
+    "repeat": 1,
+    "start_ns": 1793775025198874762,
+    "duration_ms": 3934.071
+  },
+  {
+    "attempt_id": "b44e6ef7-db94-4f2a-ba79-8c1e655ed601",
+    "language": "cpp17",
+    "mode": "run",
+    "repeat": 1,
+    "start_ns": 1793775029133202140,
+    "duration_ms": 1959.203
+  },
+  {
+    "attempt_id": "0451ca54-7dd8-481a-8ff9-34e1bf78a6a0",
+    "language": "cpp17",
+    "mode": "judge",
+    "repeat": 1,
+    "start_ns": 1793775031092677703,
+    "duration_ms": 4349.877
+  }
+]

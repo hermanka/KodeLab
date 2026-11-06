@@ -1,0 +1,16 @@
+{
+  "attempts": 2,
+  "fixture_accounts": 60,
+  "fixture_accounts_disabled": 60,
+  "fixture_classes_remaining": 0,
+  "pending_jobs": {
+    "Attempt": 0,
+    "ValidationJob": 0
+  },
+  "worker_pool_concurrency": [
+    1,
+    50
+  ],
+  "dispatch_interval_seconds": 1.0,
+  "verification_process_profiling_enabled": false
+}

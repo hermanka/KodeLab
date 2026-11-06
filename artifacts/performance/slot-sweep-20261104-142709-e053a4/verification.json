@@ -1,0 +1,90 @@
+{
+  "pooled_first_try_ms": {
+    "8": {
+      "run_30": {
+        "n": 60,
+        "mean": 14656.245,
+        "median": 14331.548,
+        "p95": 23558.134,
+        "max": 24551.376
+      },
+      "submit_30": {
+        "n": 60,
+        "mean": 27174.256,
+        "median": 24416.545,
+        "p95": 43857.87,
+        "max": 46195.184
+      }
+    },
+    "12": {
+      "run_30": {
+        "n": 60,
+        "mean": 16259.949,
+        "median": 16522.881,
+        "p95": 25274.81,
+        "max": 25584.241
+      },
+      "submit_30": {
+        "n": 60,
+        "mean": 31454.921,
+        "median": 26567.129,
+        "p95": 53905.461,
+        "max": 54319.005
+      }
+    }
+  },
+  "images_identical_across_four_cohorts": true,
+  "main_jobs_correct_this_round": 128,
+  "warnings": {
+    "slot-sweep-20261104-122722-9e1850-slots-8-retry-0ca325": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    },
+    "slot-sweep-20261104-142709-e053a4-slots-8": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    },
+    "slot-sweep-20261104-122722-9e1850-slots-12": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    },
+    "slot-sweep-20261104-142709-e053a4-slots-12": {
+      "Sandbox cleanup error": 0,
+      "Judging failed": 0,
+      "PROFILE_WRITE_FAILED": 0
+    }
+  },
+  "database": {
+    "attempts": 2,
+    "fixture_accounts": 60,
+    "fixture_accounts_disabled": 60,
+    "fixture_classes_remaining": 0,
+    "pending_jobs": {
+      "Attempt": 0,
+      "ValidationJob": 0
+    },
+    "worker_pool_concurrency": [
+      1,
+      50
+    ],
+    "dispatch_interval_seconds": 1.0,
+    "verification_process_profiling_enabled": false
+  },
+  "runner": {
+    "profiling_enabled": false,
+    "runner_slots": 50,
+    "sandbox_image": "judgementsystem-sandbox:gcc12-v2"
+  },
+  "api": {
+    "profiling_enabled": false
+  },
+  "configured_secret_scan": "passed",
+  "source_hashes": {
+    "compose.yaml": "792a7a07aa3bcb6f2e2407cb52cbe7b8d358f1c2dd28ac8f8b3fdc3da137a8f8",
+    "scripts\\profiling\\analyze.py": "09427f3a10c81c4ced97dfa3ea59efd8824bfe96f3053aa2e4a45d26584dd503",
+    "scripts\\profiling\\check.py": "a232431c434bf356dd24d32b9e440223da88fe7401f08a91e82a7da66a3e57aa"
+  }
+}

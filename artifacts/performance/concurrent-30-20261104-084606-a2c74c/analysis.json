@@ -1,0 +1,55 @@
+{
+  "http_counts": {
+    "0": 1,
+    "200": 2785,
+    "201": 64,
+    "202": 121,
+    "429": 76
+  },
+  "service_warning_count": 2,
+  "resources": {
+    "judgementsystem-api-1": {
+      "n": 64,
+      "cpu": 262.21,
+      "mib": 679.6
+    },
+    "judgementsystem-scheduler-1": {
+      "n": 64,
+      "cpu": 2.04,
+      "mib": 68.98
+    },
+    "judgementsystem-validator-1": {
+      "n": 64,
+      "cpu": 12.01,
+      "mib": 116.2
+    },
+    "judgementsystem-worker-1": {
+      "n": 64,
+      "cpu": 83.02,
+      "mib": 182.1
+    },
+    "judgementsystem-runner-1": {
+      "n": 64,
+      "cpu": 79.45,
+      "mib": 73.32
+    },
+    "judgementsystem-redis-1": {
+      "n": 64,
+      "cpu": 8,
+      "mib": 9.988
+    },
+    "judgementsystem-db-1": {
+      "n": 64,
+      "cpu": 21.28,
+      "mib": 149
+    },
+    "judgementsystem-api-run-2ee1eba2e0c1": {
+      "n": 64,
+      "cpu": 104.65,
+      "mib": 87.73
+    }
+  },
+  "remaining_sandboxes": 0,
+  "other_overlapping_attempts_after_cleanup": 0,
+  "measurement_note": "external_pending raw is affected by READ COMMITTED sampling skew; future harness now queries external owners directly"
+}

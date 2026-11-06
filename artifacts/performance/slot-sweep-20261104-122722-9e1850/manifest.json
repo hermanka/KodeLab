@@ -1,0 +1,30 @@
+{
+  "runs": [
+    {
+      "slots": 4,
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-4",
+      "status": "completed"
+    },
+    {
+      "slots": 8,
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-8",
+      "status": "failed"
+    },
+    {
+      "status": "completed",
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-8-retry-0ca325",
+      "slots": 8
+    },
+    {
+      "status": "completed",
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-12",
+      "slots": 12
+    },
+    {
+      "status": "completed",
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-16",
+      "slots": 16
+    }
+  ],
+  "note": "Each child benchmark restores original service images and Compose commands in finally"
+}

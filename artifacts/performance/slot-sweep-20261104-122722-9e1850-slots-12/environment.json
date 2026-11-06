@@ -1,0 +1,38 @@
+{
+  "docker_cpus": 12,
+  "started_local": "2026-11-04T13:44:21.7275516+07:00",
+  "sandbox_profile_image": "judgementsystem-sandbox:profile-55ee6162",
+  "config": {
+    "config_note": "Live configuration also verified in runtime-config.json; quotas unchanged; cases sequential",
+    "validator_command": [
+      "celery",
+      "-A",
+      "app.tasks.celery",
+      "worker",
+      "--loglevel=INFO",
+      "--concurrency=1",
+      "--prefetch-multiplier=1",
+      "--queues=validation"
+    ],
+    "worker_command": [
+      "celery",
+      "-A",
+      "app.tasks.celery",
+      "worker",
+      "--loglevel=INFO",
+      "--concurrency=12",
+      "--prefetch-multiplier=1",
+      "--queues=celery"
+    ],
+    "runner_slots": "12"
+  },
+  "docker_memory_bytes": 16669421568,
+  "original_images": {
+    "api": "56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+    "scheduler": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+    "worker": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+    "runner": "ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+    "validator": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3"
+  },
+  "docker_version": "29.1.2"
+}

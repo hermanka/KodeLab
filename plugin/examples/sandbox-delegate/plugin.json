@@ -1,0 +1,8 @@
+{
+  "api_version": 1,
+  "id": "sandbox-delegate",
+  "name": "Sandbox Delegate",
+  "version": "1.0.0",
+  "description": "Contoh plugin yang menggunakan runner C/C++ bawaan tanpa mengubah kebijakan nilai.",
+  "capabilities": {"languages": ["c17", "cpp17"], "custom_input": true}
+}

@@ -1,0 +1,99 @@
+{
+  "services": {
+    "scheduler": {
+      "image": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "environment": {
+        "JUDGE_PROFILE_COMPONENT": "scheduler",
+        "JUDGE_PROFILE_DIR": "/profiles"
+      },
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\slot-sweep-20261104-122722-9e1850-slots-4\\traces:/profiles"
+      ],
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "scheduler",
+        "beat",
+        "--loglevel=INFO",
+        "--schedule=/tmp/celerybeat-schedule"
+      ]
+    },
+    "runner": {
+      "image": "ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+      "environment": {
+        "RUNNER_SLOTS": "4",
+        "JUDGE_PROFILE_DIR": "/profiles",
+        "SANDBOX_IMAGE": "judgementsystem-sandbox:profile-1ffaf889",
+        "JUDGE_PROFILE_COMPONENT": "runner"
+      },
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\slot-sweep-20261104-122722-9e1850-slots-4\\traces:/profiles"
+      ],
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "runner"
+      ]
+    },
+    "worker": {
+      "image": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "environment": {
+        "JUDGE_PROFILE_COMPONENT": "worker",
+        "JUDGE_PROFILE_DIR": "/profiles"
+      },
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\slot-sweep-20261104-122722-9e1850-slots-4\\traces:/profiles"
+      ],
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "worker",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=4",
+        "--prefetch-multiplier=1",
+        "--queues=celery"
+      ]
+    },
+    "api": {
+      "image": "56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+      "environment": {
+        "JUDGE_PROFILE_COMPONENT": "api",
+        "JUDGE_PROFILE_DIR": "/profiles"
+      },
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\slot-sweep-20261104-122722-9e1850-slots-4\\traces:/profiles"
+      ],
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "api"
+      ]
+    },
+    "validator": {
+      "image": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "environment": {
+        "JUDGE_PROFILE_COMPONENT": "validator",
+        "JUDGE_PROFILE_DIR": "/profiles"
+      },
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\slot-sweep-20261104-122722-9e1850-slots-4\\traces:/profiles"
+      ],
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "validator",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=1",
+        "--prefetch-multiplier=1",
+        "--queues=validation"
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+*.egg-info/
+.coverage
+htmlcov/
+graphify-out/
+.backups/
+node_modules/
+artifacts/*.png
+artifacts/*.json
+plugin/installed/

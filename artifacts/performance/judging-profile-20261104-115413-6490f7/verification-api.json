@@ -1,0 +1,16 @@
+{
+  "run_id": "perf_30e1e8fad3",
+  "fixture_accounts": 30,
+  "fixture_accounts_disabled": 30,
+  "fixture_classes_remaining": 0,
+  "pending_jobs": {
+    "Attempt": 0,
+    "ValidationJob": 0
+  },
+  "dispatch_interval_seconds": 1.0,
+  "api_profiling_enabled": false,
+  "worker_pool_concurrency": [
+    1,
+    50
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "docker_cpus": 12,
+  "docker_memory_bytes": 16669421568,
+  "started_local": "2026-11-04T08:46:06.9868189+07:00",
+  "docker_version": "29.1.2",
+  "load_generator": "Separate one-off container, same Docker host, HTTP to api:8000",
+  "operating_system": "Docker Desktop",
+  "services": [
+    {
+      "Service": "api",
+      "Image": "judgementsystem-app:dev",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "db",
+      "Image": "mariadb:11.4@sha256:1292844148b311e4ed4300022a996d39083f415a963e970cf47cad1b3b18e3a6",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "redis",
+      "Image": "redis:7.4.2-alpine",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "runner",
+      "Image": "sha256:191b099b8d1800dd809dd2dc00895046f4e465581056ee0baeb0ea03aa84aa4a",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "scheduler",
+      "Image": "sha256:44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd",
+      "State": "running",
+      "Health": ""
+    },
+    {
+      "Service": "validator",
+      "Image": "sha256:44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd",
+      "State": "running",
+      "Health": ""
+    },
+    {
+      "Service": "worker",
+      "Image": "sha256:44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd",
+      "State": "running",
+      "Health": ""
+    }
+  ],
+  "architecture": "x86_64",
+  "configuration": "Unmodified: worker concurrency=2, validator=1, runner slots=3; class pending cap=20"
+}

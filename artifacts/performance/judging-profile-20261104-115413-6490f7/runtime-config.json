@@ -1,0 +1,21 @@
+{
+  "workers": [
+    {
+      "node": "celery@c055a17ad749",
+      "concurrency": 1,
+      "process_count": 1,
+      "queues": [
+        "validation"
+      ]
+    },
+    {
+      "node": "celery@935fb111ee67",
+      "concurrency": 50,
+      "process_count": 50,
+      "queues": [
+        "celery"
+      ]
+    }
+  ],
+  "dispatch_interval_seconds": 1.0
+}

@@ -1,0 +1,13 @@
+fastapi==0.115.12
+uvicorn==0.34.2
+SQLAlchemy==2.0.40
+PyMySQL==1.1.1
+alembic==1.15.2
+celery[redis]==5.5.2
+httpx==0.28.1
+docker==7.1.0
+pytest==8.3.5
+argon2-cffi==25.1.0
+markdown-it-py==3.0.0
+bleach==6.2.0
+cryptography==50.0.2

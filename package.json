@@ -1,0 +1,16 @@
+{
+  "name": "judgementsystem-browser-checks",
+  "private": true,
+  "scripts": {
+    "test:plugins": "node scripts/browser-plugins.cjs",
+    "test:audit-ui": "node scripts/browser-audit-fixes.cjs",
+    "test:profiles": "node scripts/browser-profiles-i18n.cjs",
+    "test:browser": "node scripts/browser-smoke.cjs",
+    "test:compiler": "node scripts/browser-compiler.cjs",
+    "test:course-lifecycle": "node scripts/browser-course-lifecycle.cjs"
+  },
+  "devDependencies": {
+    "@babel/parser": "7.28.5",
+    "playwright": "1.64.1"
+  }
+}

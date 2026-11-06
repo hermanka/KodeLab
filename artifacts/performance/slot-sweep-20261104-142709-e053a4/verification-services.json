@@ -1,0 +1,71 @@
+{
+  "services": {
+    "runner": {
+      "image": "sha256:ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+      "command": [
+        "uvicorn",
+        "runner.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8001",
+        "--workers",
+        "1"
+      ],
+      "status": "running"
+    },
+    "scheduler": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "beat",
+        "--loglevel=INFO",
+        "--schedule=/tmp/celerybeat-schedule"
+      ],
+      "status": "running"
+    },
+    "validator": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=1",
+        "--prefetch-multiplier=1",
+        "--queues=validation"
+      ],
+      "status": "running"
+    },
+    "api": {
+      "image": "sha256:56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+      "command": [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+      "status": "running"
+    },
+    "worker": {
+      "image": "sha256:c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3",
+      "command": [
+        "celery",
+        "-A",
+        "app.tasks.celery",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=50",
+        "--prefetch-multiplier=1",
+        "--queues=celery"
+      ],
+      "status": "running"
+    }
+  },
+  "sandbox_containers_remaining": 0
+}

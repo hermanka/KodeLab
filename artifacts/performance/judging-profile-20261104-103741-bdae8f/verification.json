@@ -1,0 +1,15 @@
+{
+  "fixture_users": 30,
+  "fixture_users_disabled": 30,
+  "fixture_classes_remaining": 0,
+  "pending_jobs": {
+    "Attempt": 0,
+    "ValidationJob": 0
+  },
+  "scheduler_seconds": 1.0,
+  "api_profiling_enabled": false,
+  "worker_concurrency": [
+    1,
+    50
+  ]
+}

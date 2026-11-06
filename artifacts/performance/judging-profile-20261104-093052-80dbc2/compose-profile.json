@@ -1,0 +1,85 @@
+{
+  "services": {
+    "validator": {
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\judging-profile-20261104-093052-80dbc2\\traces:/profiles"
+      ],
+      "image": "44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd",
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "validator"
+      ],
+      "environment": {
+        "JUDGE_PROFILE_COMPONENT": "validator",
+        "JUDGE_PROFILE_DIR": "/profiles"
+      }
+    },
+    "api": {
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\judging-profile-20261104-093052-80dbc2\\traces:/profiles"
+      ],
+      "image": "06576571ad7b32673c5184a403bdad27bd05ad81a57f79087958fd13cff2b3eb",
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "api"
+      ],
+      "environment": {
+        "JUDGE_PROFILE_COMPONENT": "api",
+        "JUDGE_PROFILE_DIR": "/profiles"
+      }
+    },
+    "scheduler": {
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\judging-profile-20261104-093052-80dbc2\\traces:/profiles"
+      ],
+      "image": "44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd",
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "scheduler"
+      ],
+      "environment": {
+        "JUDGE_PROFILE_COMPONENT": "scheduler",
+        "JUDGE_PROFILE_DIR": "/profiles"
+      }
+    },
+    "runner": {
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\judging-profile-20261104-093052-80dbc2\\traces:/profiles"
+      ],
+      "image": "191b099b8d1800dd809dd2dc00895046f4e465581056ee0baeb0ea03aa84aa4a",
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "runner"
+      ],
+      "environment": {
+        "JUDGE_PROFILE_DIR": "/profiles",
+        "JUDGE_PROFILE_COMPONENT": "runner",
+        "SANDBOX_IMAGE": "judgementsystem-sandbox:profile-b369c8d3"
+      }
+    },
+    "worker": {
+      "volumes": [
+        "D:\\PENELITIAN\\JudgementSystem\\scripts\\profiling:/profiling:ro",
+        "D:\\PENELITIAN\\JudgementSystem\\artifacts\\performance\\judging-profile-20261104-093052-80dbc2\\traces:/profiles"
+      ],
+      "image": "44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd",
+      "command": [
+        "python",
+        "/profiling/launch.py",
+        "worker"
+      ],
+      "environment": {
+        "JUDGE_PROFILE_COMPONENT": "worker",
+        "JUDGE_PROFILE_DIR": "/profiles"
+      }
+    }
+  }
+}

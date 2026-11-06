@@ -1,0 +1,136 @@
+worker-1  |  
+runner-1  | INFO:     Started server process [7]
+runner-1  | INFO:     Waiting for application startup.
+runner-1  | INFO:     Application startup complete.
+worker-1  |  -------------- celery@2f997bce096d v5.5.2 (immunity)
+worker-1  | --- ***** ----- 
+worker-1  | -- ******* ---- Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36 2026-11-04 03:41:56
+runner-1  | INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+runner-1  | INFO:     127.0.0.1:58836 - "GET /health HTTP/1.1" 200 OK
+runner-1  | INFO:     127.0.0.1:58648 - "GET /health HTTP/1.1" 200 OK
+runner-1  | INFO:     172.29.0.8:44478 - "GET /health HTTP/1.1" 200 OK
+runner-1  | INFO:     127.0.0.1:60110 - "GET /health HTTP/1.1" 200 OK
+runner-1  | INFO:     172.29.0.8:41324 - "GET /health HTTP/1.1" 200 OK
+worker-1  | - *** --- * --- 
+worker-1  | - ** ---------- [config]
+worker-1  | - ** ---------- .> app:         judgement:0x725c2820ea80
+worker-1  | - ** ---------- .> transport:   redis://redis:6379/0
+worker-1  | - ** ---------- .> results:     disabled://
+runner-1  | INFO:     127.0.0.1:57714 - "GET /health HTTP/1.1" 200 OK
+runner-1  | INFO:     172.29.0.8:41442 - "GET /health HTTP/1.1" 200 OK
+worker-1  | - *** --- * --- .> concurrency: 50 (prefork)
+worker-1  | -- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+worker-1  | --- ***** ----- 
+worker-1  |  -------------- [queues]
+worker-1  |                 .> celery           exchange=celery(direct) key=celery
+worker-1  |                 
+worker-1  | 
+worker-1  | [tasks]
+worker-1  |   . judgement.dispatch
+worker-1  |   . judgement.run
+worker-1  |   . judgement.validate
+worker-1  | 
+worker-1  | [2026-11-04 03:42:00,873: INFO/MainProcess] Connected to redis://redis:6379/0
+worker-1  | [2026-11-04 03:42:00,877: INFO/MainProcess] mingle: searching for neighbors
+worker-1  | [2026-11-04 03:42:01,892: INFO/MainProcess] mingle: sync with 1 nodes
+worker-1  | [2026-11-04 03:42:01,892: INFO/MainProcess] mingle: sync complete
+worker-1  | [2026-11-04 03:42:01,908: INFO/MainProcess] celery@2f997bce096d ready.
+worker-1  | [2026-11-04 03:42:01,912: INFO/MainProcess] Task judgement.dispatch[961f7e1a-5d20-46fc-9c7f-db73e0000b8f] received
+worker-1  | [2026-11-04 03:42:01,913: INFO/MainProcess] Task judgement.dispatch[5d8aeaec-a259-4499-a30e-d6dab1b29b68] received
+worker-1  | [2026-11-04 03:42:01,916: INFO/MainProcess] Task judgement.dispatch[df4352db-ba83-4cd7-8730-24e7fb2650fb] received
+worker-1  | [2026-11-04 03:42:01,918: INFO/MainProcess] Task judgement.dispatch[cb0013e1-0fcf-490f-814d-1d4847559f1a] received
+worker-1  | [2026-11-04 03:42:01,920: INFO/MainProcess] Task judgement.dispatch[aaa86c60-32a1-4cab-8f32-c356537d3e9f] received
+worker-1  | [2026-11-04 03:42:01,922: INFO/MainProcess] Task judgement.dispatch[abbcc226-57da-4393-8c53-454d2cfa2970] received
+worker-1  | [2026-11-04 03:42:01,925: INFO/MainProcess] Task judgement.dispatch[f26414bf-5a0d-45ab-b78b-550e308999cd] received
+worker-1  | [2026-11-04 03:42:01,928: INFO/MainProcess] Task judgement.dispatch[1fa1ccc9-2b7e-45f2-bc64-a950477308fd] received
+worker-1  | [2026-11-04 03:42:01,930: INFO/MainProcess] Task judgement.dispatch[52287238-c09c-40a2-809f-a396c8b0acfa] received
+worker-1  | [2026-11-04 03:42:01,932: INFO/MainProcess] Task judgement.dispatch[6dd13bbc-944d-4e14-b39e-7fd7abdddc4f] received
+worker-1  | [2026-11-04 03:42:01,937: INFO/MainProcess] Task judgement.dispatch[47e56fb1-e4b3-4d93-9aef-18c2f18954ee] received
+worker-1  | [2026-11-04 03:42:01,939: INFO/MainProcess] Task judgement.dispatch[aecc5317-517a-4c70-a9d0-4ada90c1524e] received
+worker-1  | [2026-11-04 03:42:01,947: INFO/MainProcess] Task judgement.dispatch[6b2a5da4-17f9-40d7-acca-34bbf899c058] received
+worker-1  | [2026-11-04 03:42:01,950: INFO/MainProcess] Task judgement.dispatch[5174a1a4-fe84-4d68-9ca5-ee1cc28ff09f] received
+worker-1  | [2026-11-04 03:42:01,967: INFO/MainProcess] Task judgement.dispatch[8ddff3c7-5b07-4ad8-8fa7-daf49d1af0e6] received
+worker-1  | [2026-11-04 03:42:01,969: INFO/MainProcess] Task judgement.dispatch[a18fa34c-f367-40c0-b182-5e87f818bcdd] received
+worker-1  | [2026-11-04 03:42:02,062: INFO/ForkPoolWorker-5] Task judgement.dispatch[6dd13bbc-944d-4e14-b39e-7fd7abdddc4f] succeeded in 0.1282647990001351s: None
+worker-1  | [2026-11-04 03:42:02,069: INFO/ForkPoolWorker-36] Task judgement.dispatch[52287238-c09c-40a2-809f-a396c8b0acfa] succeeded in 0.1353608589997748s: None
+worker-1  | [2026-11-04 03:42:02,075: INFO/ForkPoolWorker-35] Task judgement.dispatch[f26414bf-5a0d-45ab-b78b-550e308999cd] succeeded in 0.1461247060005917s: None
+worker-1  | [2026-11-04 03:42:02,086: INFO/ForkPoolWorker-2] Task judgement.dispatch[cb0013e1-0fcf-490f-814d-1d4847559f1a] succeeded in 0.16699454899935517s: None
+worker-1  | [2026-11-04 03:42:02,088: INFO/ForkPoolWorker-34] Task judgement.dispatch[aaa86c60-32a1-4cab-8f32-c356537d3e9f] succeeded in 0.16475647300012497s: None
+worker-1  | [2026-11-04 03:42:02,090: INFO/ForkPoolWorker-32] Task judgement.dispatch[961f7e1a-5d20-46fc-9c7f-db73e0000b8f] succeeded in 0.17581354300000385s: None
+worker-1  | [2026-11-04 03:42:02,099: INFO/ForkPoolWorker-37] Task judgement.dispatch[47e56fb1-e4b3-4d93-9aef-18c2f18954ee] succeeded in 0.15874129900021217s: None
+worker-1  | [2026-11-04 03:42:02,104: INFO/ForkPoolWorker-1] Task judgement.dispatch[5d8aeaec-a259-4499-a30e-d6dab1b29b68] succeeded in 0.19014797199997702s: None
+worker-1  | [2026-11-04 03:42:02,106: INFO/ForkPoolWorker-38] Task judgement.dispatch[6b2a5da4-17f9-40d7-acca-34bbf899c058] succeeded in 0.1501583239996762s: None
+worker-1  | [2026-11-04 03:42:02,107: INFO/ForkPoolWorker-33] Task judgement.dispatch[df4352db-ba83-4cd7-8730-24e7fb2650fb] succeeded in 0.1889322759998322s: None
+worker-1  | [2026-11-04 03:42:02,115: INFO/ForkPoolWorker-6] Task judgement.dispatch[aecc5317-517a-4c70-a9d0-4ada90c1524e] succeeded in 0.1732085379999262s: None
+worker-1  | [2026-11-04 03:42:02,118: INFO/ForkPoolWorker-3] Task judgement.dispatch[abbcc226-57da-4393-8c53-454d2cfa2970] succeeded in 0.19486624300043331s: None
+worker-1  | [2026-11-04 03:42:02,136: INFO/ForkPoolWorker-4] Task judgement.dispatch[1fa1ccc9-2b7e-45f2-bc64-a950477308fd] succeeded in 0.20726121900042926s: None
+worker-1  | [2026-11-04 03:42:02,137: INFO/ForkPoolWorker-8] Task judgement.dispatch[a18fa34c-f367-40c0-b182-5e87f818bcdd] succeeded in 0.16650061000018468s: None
+worker-1  | [2026-11-04 03:42:02,142: INFO/ForkPoolWorker-7] Task judgement.dispatch[5174a1a4-fe84-4d68-9ca5-ee1cc28ff09f] succeeded in 0.18575622700063832s: None
+worker-1  | [2026-11-04 03:42:02,162: INFO/ForkPoolWorker-39] Task judgement.dispatch[8ddff3c7-5b07-4ad8-8fa7-daf49d1af0e6] succeeded in 0.19130016300005082s: None
+worker-1  | [2026-11-04 03:42:02,185: INFO/MainProcess] Task judgement.dispatch[e121e674-0419-4271-b9e9-fcdfc92226d7] received
+worker-1  | [2026-11-04 03:42:02,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[e121e674-0419-4271-b9e9-fcdfc92226d7] succeeded in 0.006027973999152891s: None
+worker-1  | [2026-11-04 03:42:03,185: INFO/MainProcess] Task judgement.dispatch[b048640a-5eb8-4f7a-9908-aa1e8a93a046] received
+worker-1  | [2026-11-04 03:42:03,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[b048640a-5eb8-4f7a-9908-aa1e8a93a046] succeeded in 0.005304618000081973s: None
+worker-1  | [2026-11-04 03:42:04,185: INFO/MainProcess] Task judgement.dispatch[01617b29-a502-4ac6-b56d-2e4b40107a37] received
+worker-1  | [2026-11-04 03:42:04,191: INFO/ForkPoolWorker-32] Task judgement.dispatch[01617b29-a502-4ac6-b56d-2e4b40107a37] succeeded in 0.005307717000505363s: None
+worker-1  | [2026-11-04 03:42:05,186: INFO/MainProcess] Task judgement.dispatch[a339406c-8241-4599-9b38-533b7dd5fe46] received
+worker-1  | [2026-11-04 03:42:05,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[a339406c-8241-4599-9b38-533b7dd5fe46] succeeded in 0.006822092000220437s: None
+worker-1  | [2026-11-04 03:42:06,186: INFO/MainProcess] Task judgement.dispatch[01e95f50-01a2-4b9d-a91a-fee2f75fe35c] received
+worker-1  | [2026-11-04 03:42:06,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[01e95f50-01a2-4b9d-a91a-fee2f75fe35c] succeeded in 0.0061049400001138565s: None
+worker-1  | [2026-11-04 03:42:07,185: INFO/MainProcess] Task judgement.dispatch[1e482ea3-d766-4830-968c-ed57adf301b6] received
+worker-1  | [2026-11-04 03:42:07,191: INFO/ForkPoolWorker-32] Task judgement.dispatch[1e482ea3-d766-4830-968c-ed57adf301b6] succeeded in 0.004885553000349319s: None
+worker-1  | [2026-11-04 03:42:08,186: INFO/MainProcess] Task judgement.dispatch[ee7bf600-7a23-4e2f-adfa-a4f37f31095f] received
+worker-1  | [2026-11-04 03:42:08,194: INFO/ForkPoolWorker-32] Task judgement.dispatch[ee7bf600-7a23-4e2f-adfa-a4f37f31095f] succeeded in 0.006781588999729138s: None
+worker-1  | [2026-11-04 03:42:09,186: INFO/MainProcess] Task judgement.dispatch[8912a9c8-d052-4a47-a13f-99c8bf57d970] received
+worker-1  | [2026-11-04 03:42:09,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[8912a9c8-d052-4a47-a13f-99c8bf57d970] succeeded in 0.005819020000672026s: None
+worker-1  | [2026-11-04 03:42:10,186: INFO/MainProcess] Task judgement.dispatch[040d1df4-c759-4bf2-9c56-3230602ef4b6] received
+worker-1  | [2026-11-04 03:42:10,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[040d1df4-c759-4bf2-9c56-3230602ef4b6] succeeded in 0.005349785999896994s: None
+worker-1  | [2026-11-04 03:42:11,186: INFO/MainProcess] Task judgement.dispatch[5f4bc097-fb87-40de-a440-68648dc20eee] received
+worker-1  | [2026-11-04 03:42:11,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[5f4bc097-fb87-40de-a440-68648dc20eee] succeeded in 0.004885252000349283s: None
+worker-1  | [2026-11-04 03:42:12,186: INFO/MainProcess] Task judgement.dispatch[7f9453da-b006-4e65-8f9e-d0ad19b4ffee] received
+worker-1  | [2026-11-04 03:42:12,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[7f9453da-b006-4e65-8f9e-d0ad19b4ffee] succeeded in 0.005262579999907757s: None
+worker-1  | [2026-11-04 03:42:13,186: INFO/MainProcess] Task judgement.dispatch[b3fc19da-f119-44ac-b921-69d92c4ded65] received
+worker-1  | [2026-11-04 03:42:13,191: INFO/ForkPoolWorker-32] Task judgement.dispatch[b3fc19da-f119-44ac-b921-69d92c4ded65] succeeded in 0.00488236399996822s: None
+worker-1  | [2026-11-04 03:42:14,186: INFO/MainProcess] Task judgement.dispatch[930424bb-0496-4fde-b43f-1b9fefd26894] received
+worker-1  | [2026-11-04 03:42:14,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[930424bb-0496-4fde-b43f-1b9fefd26894] succeeded in 0.005533513000045787s: None
+worker-1  | [2026-11-04 03:42:15,186: INFO/MainProcess] Task judgement.dispatch[054dc734-3cb4-45d6-a3d0-2f29b1599c48] received
+worker-1  | [2026-11-04 03:42:15,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[054dc734-3cb4-45d6-a3d0-2f29b1599c48] succeeded in 0.005368900999201287s: None
+worker-1  | [2026-11-04 03:42:16,186: INFO/MainProcess] Task judgement.dispatch[bc5940f6-1118-4714-aaf8-a567fc871cfc] received
+worker-1  | [2026-11-04 03:42:16,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[bc5940f6-1118-4714-aaf8-a567fc871cfc] succeeded in 0.004974470999513869s: None
+worker-1  | [2026-11-04 03:42:17,186: INFO/MainProcess] Task judgement.dispatch[b366e3c9-bcc1-424b-8dde-6db76313bf9b] received
+worker-1  | [2026-11-04 03:42:17,191: INFO/ForkPoolWorker-32] Task judgement.dispatch[b366e3c9-bcc1-424b-8dde-6db76313bf9b] succeeded in 0.004854462999901443s: None
+worker-1  | [2026-11-04 03:42:18,186: INFO/MainProcess] Task judgement.dispatch[edad1cfe-c3cb-48da-8f6a-ebd0660a3523] received
+worker-1  | [2026-11-04 03:42:18,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[edad1cfe-c3cb-48da-8f6a-ebd0660a3523] succeeded in 0.005255693000435713s: None
+worker-1  | [2026-11-04 03:42:19,186: INFO/MainProcess] Task judgement.dispatch[684ded07-fec0-4295-9659-b5091a6d9569] received
+worker-1  | [2026-11-04 03:42:19,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[684ded07-fec0-4295-9659-b5091a6d9569] succeeded in 0.004996474000108719s: None
+worker-1  | [2026-11-04 03:42:20,186: INFO/MainProcess] Task judgement.dispatch[c7ee457d-8128-4884-acd2-a2042ac93569] received
+worker-1  | [2026-11-04 03:42:20,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[c7ee457d-8128-4884-acd2-a2042ac93569] succeeded in 0.005553715000132797s: None
+worker-1  | [2026-11-04 03:42:21,186: INFO/MainProcess] Task judgement.dispatch[e854767f-2aed-4ade-b77d-9e18f6f3afac] received
+worker-1  | [2026-11-04 03:42:21,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[e854767f-2aed-4ade-b77d-9e18f6f3afac] succeeded in 0.005994354999529605s: None
+worker-1  | [2026-11-04 03:42:22,186: INFO/MainProcess] Task judgement.dispatch[5eb9ccae-5221-4bab-ae44-dc7345ca56e3] received
+worker-1  | [2026-11-04 03:42:22,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[5eb9ccae-5221-4bab-ae44-dc7345ca56e3] succeeded in 0.004746761000205879s: None
+worker-1  | [2026-11-04 03:42:23,186: INFO/MainProcess] Task judgement.dispatch[31c0e878-ce56-4566-9b7b-a207686cd021] received
+worker-1  | [2026-11-04 03:42:23,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[31c0e878-ce56-4566-9b7b-a207686cd021] succeeded in 0.005907550000301853s: None
+worker-1  | [2026-11-04 03:42:24,186: INFO/MainProcess] Task judgement.dispatch[99955e1e-2079-40b2-b097-616485ffcb9d] received
+worker-1  | [2026-11-04 03:42:24,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[99955e1e-2079-40b2-b097-616485ffcb9d] succeeded in 0.005562823000218486s: None
+worker-1  | [2026-11-04 03:42:25,186: INFO/MainProcess] Task judgement.dispatch[07ff039c-0994-4acf-bfe6-effb050cf003] received
+worker-1  | [2026-11-04 03:42:25,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[07ff039c-0994-4acf-bfe6-effb050cf003] succeeded in 0.005984655000247585s: None
+worker-1  | [2026-11-04 03:42:26,186: INFO/MainProcess] Task judgement.dispatch[803449bf-cc04-4a16-9896-d0bc701140df] received
+worker-1  | [2026-11-04 03:42:26,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[803449bf-cc04-4a16-9896-d0bc701140df] succeeded in 0.005419912999968801s: None
+worker-1  | [2026-11-04 03:42:27,186: INFO/MainProcess] Task judgement.dispatch[d371d817-692e-4441-ae81-eaeaf9dd2d5f] received
+worker-1  | [2026-11-04 03:42:27,192: INFO/ForkPoolWorker-32] Task judgement.dispatch[d371d817-692e-4441-ae81-eaeaf9dd2d5f] succeeded in 0.0053098029993634555s: None
+worker-1  | [2026-11-04 03:42:28,186: INFO/MainProcess] Task judgement.dispatch[33071b70-f1b9-4b91-86b4-38153e245e2e] received
+worker-1  | [2026-11-04 03:42:28,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[33071b70-f1b9-4b91-86b4-38153e245e2e] succeeded in 0.005619227999886789s: None
+worker-1  | [2026-11-04 03:42:29,187: INFO/MainProcess] Task judgement.dispatch[1af2fc26-82c2-47a5-b77e-434971165f3f] received
+worker-1  | [2026-11-04 03:42:29,196: INFO/ForkPoolWorker-32] Task judgement.dispatch[1af2fc26-82c2-47a5-b77e-434971165f3f] succeeded in 0.007658782000362407s: None
+worker-1  | [2026-11-04 03:42:30,186: INFO/MainProcess] Task judgement.dispatch[67be6390-a9bc-4265-a143-fa34c4b9c6c6] received
+worker-1  | [2026-11-04 03:42:30,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[67be6390-a9bc-4265-a143-fa34c4b9c6c6] succeeded in 0.0055233200000657234s: None
+worker-1  | [2026-11-04 03:42:31,186: INFO/MainProcess] Task judgement.dispatch[d17bbd36-a744-47cc-b076-5ba0d0ad1d0a] received
+worker-1  | [2026-11-04 03:42:31,193: INFO/ForkPoolWorker-32] Task judgement.dispatch[d17bbd36-a744-47cc-b076-5ba0d0ad1d0a] succeeded in 0.0054721160004191916s: None
+api-1     | INFO:     Started server process [7]
+api-1     | INFO:     Waiting for application startup.
+api-1     | INFO:     Application startup complete.
+api-1     | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+api-1     | INFO:     127.0.0.1:50206 - "GET /health/ready HTTP/1.1" 200 OK
+api-1     | INFO:     127.0.0.1:54422 - "GET /health/ready HTTP/1.1" 200 OK
+api-1     | INFO:     127.0.0.1:52068 - "GET /health/ready HTTP/1.1" 200 OK

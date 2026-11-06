@@ -1,0 +1,17 @@
+{
+  "runs": [
+    {
+      "directory": "slot-sweep-20261104-142709-e053a4-slots-12",
+      "slots": 12,
+      "status": "completed",
+      "analysis_note": "Rejoined existing raw traces by span ancestry; original analysis preserved in before-reanalysis"
+    },
+    {
+      "directory": "slot-sweep-20261104-142709-e053a4-slots-8",
+      "slots": 8,
+      "status": "completed",
+      "analysis_note": "Rejoined existing raw traces by span ancestry; original analysis preserved in before-reanalysis"
+    }
+  ],
+  "note": "8-slot load completed correctly; initial analyzer failed on timestamp filtering. Both cohorts reanalyzed by span ancestry without repeating load. Services restored by original finally block."
+}

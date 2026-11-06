@@ -1,0 +1,15 @@
+{
+  "started_local": "2026-11-04T09:30:54.7260366+07:00",
+  "sandbox_profile_image": "judgementsystem-sandbox:profile-b369c8d3",
+  "docker_version": "29.1.2",
+  "docker_cpus": 12,
+  "config": "Unchanged quotas; worker=2; validator=1; runner slots=3; sequential cases; dispatch interval=5s",
+  "original_images": {
+    "validator": "44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd",
+    "api": "06576571ad7b32673c5184a403bdad27bd05ad81a57f79087958fd13cff2b3eb",
+    "scheduler": "44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd",
+    "runner": "191b099b8d1800dd809dd2dc00895046f4e465581056ee0baeb0ea03aa84aa4a",
+    "worker": "44eac9f3f72151700cfc2284575dc9d034875551d388230853832a42cc5c4ccd"
+  },
+  "docker_memory_bytes": 16669421568
+}

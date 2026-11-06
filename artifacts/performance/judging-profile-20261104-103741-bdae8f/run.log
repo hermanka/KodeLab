@@ -1,0 +1,17 @@
+SETUP: 30 isolated student accounts created
+SETUP: one private class/path, C17/C++17 reference solutions validated on 5 test cases
+ACCESS: 30 concurrent logins, same class/path, enrollment and required reading completed
+single_c17_run wave 1: accepted=1, rejected429=0
+single_c17_run: drained in 3.262s
+single_c17_judge wave 1: accepted=1, rejected429=0
+single_c17_judge: drained in 5.262s
+single_cpp17_run wave 1: accepted=1, rejected429=0
+single_cpp17_run: drained in 3.235s
+single_cpp17_judge wave 1: accepted=1, rejected429=0
+single_cpp17_judge: drained in 6.362s
+run_30 wave 1: accepted=30, rejected429=0
+run_30: drained in 26.48s
+submit_30 wave 1: accepted=20, rejected429=10
+submit_30 wave 2: accepted=10, rejected429=0
+submit_30: drained in 53.923s
+{"status": "completed", "anomalies": 0, "cleanup": {"class_deleted": true, "test_accounts_disabled": 30}, "results": "/results/results.json"}

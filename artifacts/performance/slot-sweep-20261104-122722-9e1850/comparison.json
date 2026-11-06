@@ -1,0 +1,529 @@
+{
+  "runs": [
+    {
+      "slots": 4,
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-4",
+      "run_id": "perf_f38cf8679d",
+      "api_image": "56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+      "runner_image": "ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+      "queue_peaks": {
+        "queued": 17,
+        "running": 4,
+        "retry_pending": 0,
+        "own_pending": 20,
+        "external_pending": 0
+      },
+      "deliveries": 64,
+      "cleanup": {
+        "class_deleted": true,
+        "test_accounts_disabled": 30
+      },
+      "phases": {
+        "run_30": {
+          "first_try": {
+            "n": 30,
+            "mean": 18872.164,
+            "median": 18860.89,
+            "p95": 30146.956,
+            "max": 30178.024
+          },
+          "accepted_request": {
+            "n": 30,
+            "mean": 13838.327,
+            "median": 13828.093,
+            "p95": 23878.233,
+            "max": 25150.529
+          },
+          "runner": {
+            "n": 30,
+            "mean": 2980.783,
+            "median": 2827.525,
+            "p95": 4363.17,
+            "max": 4583.689
+          },
+          "outbox": {
+            "n": 30,
+            "mean": 3126.1,
+            "median": 787.809,
+            "p95": 13458.702,
+            "max": 13748.576
+          },
+          "worker_wait": {
+            "n": 30,
+            "mean": 4196.765,
+            "median": 2758.91,
+            "p95": 13046.968,
+            "max": 13524.801
+          },
+          "api_lock": {
+            "n": 30,
+            "mean": 1337.835,
+            "median": 1025.006,
+            "p95": 5233.359,
+            "max": 6003.264
+          },
+          "initial_http": {
+            "202": 24,
+            "429": 6
+          },
+          "duration_seconds": 30.229,
+          "retries": 0,
+          "vm_cpu_mean": 48.04689824236087,
+          "vm_cpu_max": 64.18685121107266,
+          "vm_memory_available_min_gib": 13.114517211914062
+        },
+        "submit_30": {
+          "first_try": {
+            "n": 30,
+            "mean": 35544.964,
+            "median": 33948.119,
+            "p95": 61496.386,
+            "max": 61727.41
+          },
+          "accepted_request": {
+            "n": 30,
+            "mean": 22158.168,
+            "median": 18589.05,
+            "p95": 40105.323,
+            "max": 40136.822
+          },
+          "runner": {
+            "n": 30,
+            "mean": 6962.996,
+            "median": 7002.067,
+            "p95": 8473.605,
+            "max": 8797.767
+          },
+          "outbox": {
+            "n": 30,
+            "mean": 2510.506,
+            "median": 563.295,
+            "p95": 30121.476,
+            "max": 30464.813
+          },
+          "worker_wait": {
+            "n": 30,
+            "mean": 9988.752,
+            "median": 7846.097,
+            "p95": 28950.028,
+            "max": 30429.746
+          },
+          "api_lock": {
+            "n": 30,
+            "mean": 722.101,
+            "median": 880.373,
+            "p95": 1107.519,
+            "max": 1110.571
+          },
+          "initial_http": {
+            "202": 20,
+            "429": 10
+          },
+          "duration_seconds": 61.761,
+          "retries": 0,
+          "vm_cpu_mean": 48.381687102746156,
+          "vm_cpu_max": 62.51060220525869,
+          "vm_memory_available_min_gib": 13.039215087890625
+        }
+      },
+      "unprofiled_cpp_submit_ms": 3840.744,
+      "equal_weight_p95_seconds": 91.643342
+    },
+    {
+      "slots": 8,
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-8-retry-0ca325",
+      "run_id": "perf_17edfe4605",
+      "api_image": "56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+      "runner_image": "ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+      "queue_peaks": {
+        "queued": 17,
+        "running": 8,
+        "retry_pending": 0,
+        "own_pending": 20,
+        "external_pending": 0
+      },
+      "deliveries": 64,
+      "cleanup": {
+        "class_deleted": true,
+        "test_accounts_disabled": 30
+      },
+      "phases": {
+        "run_30": {
+          "first_try": {
+            "n": 30,
+            "mean": 13093.139,
+            "median": 12451.882,
+            "p95": 20818.039,
+            "max": 20819.621
+          },
+          "accepted_request": {
+            "n": 30,
+            "mean": 9454.202,
+            "median": 9271.384,
+            "p95": 15572.392,
+            "max": 15586.619
+          },
+          "runner": {
+            "n": 30,
+            "mean": 3294.518,
+            "median": 3262.677,
+            "p95": 4201.261,
+            "max": 4321.073
+          },
+          "outbox": {
+            "n": 30,
+            "mean": 1765.471,
+            "median": 518.787,
+            "p95": 4666.447,
+            "max": 4700.978
+          },
+          "worker_wait": {
+            "n": 30,
+            "mean": 911.478,
+            "median": 53.536,
+            "p95": 4278.925,
+            "max": 4568.932
+          },
+          "api_lock": {
+            "n": 30,
+            "mean": 1164.78,
+            "median": 981.886,
+            "p95": 4698.712,
+            "max": 5155.782
+          },
+          "initial_http": {
+            "202": 23,
+            "429": 7
+          },
+          "duration_seconds": 20.863,
+          "retries": 0,
+          "vm_cpu_mean": 57.341128812533164,
+          "vm_cpu_max": 81.15942028985508,
+          "vm_memory_available_min_gib": 12.848464965820312
+        },
+        "submit_30": {
+          "first_try": {
+            "n": 30,
+            "mean": 26359.671,
+            "median": 22943.487,
+            "p95": 43857.87,
+            "max": 43889.96
+          },
+          "accepted_request": {
+            "n": 30,
+            "mean": 16818.396,
+            "median": 13401.677,
+            "p95": 28593.401,
+            "max": 28641.392
+          },
+          "runner": {
+            "n": 30,
+            "mean": 8381.914,
+            "median": 8819.565,
+            "p95": 10066.116,
+            "max": 10309.78
+          },
+          "outbox": {
+            "n": 30,
+            "mean": 2213.406,
+            "median": 511.297,
+            "p95": 17943.479,
+            "max": 18136.94
+          },
+          "worker_wait": {
+            "n": 30,
+            "mean": 3634.527,
+            "median": 35.269,
+            "p95": 9976.744,
+            "max": 17576.945
+          },
+          "api_lock": {
+            "n": 30,
+            "mean": 714.063,
+            "median": 895.462,
+            "p95": 1103.841,
+            "max": 1146.905
+          },
+          "initial_http": {
+            "202": 20,
+            "429": 10
+          },
+          "duration_seconds": 43.896,
+          "retries": 0,
+          "vm_cpu_mean": 60.05532207566964,
+          "vm_cpu_max": 78.26453243470935,
+          "vm_memory_available_min_gib": 12.826129913330078
+        }
+      },
+      "unprofiled_cpp_submit_ms": 3759.117,
+      "equal_weight_p95_seconds": 64.675909
+    },
+    {
+      "slots": 12,
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-12",
+      "run_id": "perf_40391ddce1",
+      "api_image": "56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+      "runner_image": "ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+      "queue_peaks": {
+        "queued": 14,
+        "running": 12,
+        "retry_pending": 0,
+        "own_pending": 20,
+        "external_pending": 0
+      },
+      "deliveries": 64,
+      "cleanup": {
+        "class_deleted": true,
+        "test_accounts_disabled": 30
+      },
+      "phases": {
+        "run_30": {
+          "first_try": {
+            "n": 30,
+            "mean": 17261.29,
+            "median": 17081.705,
+            "p95": 25574.289,
+            "max": 25584.241
+          },
+          "accepted_request": {
+            "n": 30,
+            "mean": 13849.528,
+            "median": 13695.676,
+            "p95": 20246.297,
+            "max": 20459.096
+          },
+          "runner": {
+            "n": 30,
+            "mean": 5594.833,
+            "median": 5656.22,
+            "p95": 8051.174,
+            "max": 8181.491
+          },
+          "outbox": {
+            "n": 30,
+            "mean": 1945.949,
+            "median": 678.342,
+            "p95": 5749.783,
+            "max": 5828.465
+          },
+          "worker_wait": {
+            "n": 30,
+            "mean": 655.754,
+            "median": 7.895,
+            "p95": 2990.064,
+            "max": 3129.359
+          },
+          "api_lock": {
+            "n": 30,
+            "mean": 2202.69,
+            "median": 1093.19,
+            "p95": 9438.361,
+            "max": 10163.263
+          },
+          "initial_http": {
+            "202": 25,
+            "429": 5
+          },
+          "duration_seconds": 25.625,
+          "retries": 0,
+          "vm_cpu_mean": 62.85490085619501,
+          "vm_cpu_max": 89.53934740882917,
+          "vm_memory_available_min_gib": 12.561748504638672
+        },
+        "submit_30": {
+          "first_try": {
+            "n": 30,
+            "mean": 35981.019,
+            "median": 34500.501,
+            "p95": 54256.57,
+            "max": 54319.005
+          },
+          "accepted_request": {
+            "n": 30,
+            "mean": 24025.082,
+            "median": 22469.87,
+            "p95": 35800.271,
+            "max": 35872.961
+          },
+          "runner": {
+            "n": 30,
+            "mean": 15720.68,
+            "median": 15333.578,
+            "p95": 19708.454,
+            "max": 20428.668
+          },
+          "outbox": {
+            "n": 30,
+            "mean": 2655.948,
+            "median": 508.169,
+            "p95": 17155.673,
+            "max": 17366.94
+          },
+          "worker_wait": {
+            "n": 30,
+            "mean": 2176.259,
+            "median": 7.777,
+            "p95": 17016.473,
+            "max": 17053.025
+          },
+          "api_lock": {
+            "n": 30,
+            "mean": 917.654,
+            "median": 1226.275,
+            "p95": 1730.786,
+            "max": 1942.882
+          },
+          "initial_http": {
+            "202": 20,
+            "429": 10
+          },
+          "duration_seconds": 54.365,
+          "retries": 0,
+          "vm_cpu_mean": 67.60979916439248,
+          "vm_cpu_max": 89.377990430622,
+          "vm_memory_available_min_gib": 12.467086791992188
+        }
+      },
+      "unprofiled_cpp_submit_ms": 3994.749,
+      "equal_weight_p95_seconds": 79.830859
+    },
+    {
+      "slots": 16,
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-16",
+      "run_id": "perf_845f516d79",
+      "api_image": "56dd4884b7d6010c72750348c85a2aaa6321cc461176db05b6c15b1bad7ca3d5",
+      "runner_image": "ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549",
+      "queue_peaks": {
+        "queued": 14,
+        "running": 16,
+        "retry_pending": 0,
+        "own_pending": 20,
+        "external_pending": 0
+      },
+      "deliveries": 64,
+      "cleanup": {
+        "class_deleted": true,
+        "test_accounts_disabled": 30
+      },
+      "phases": {
+        "run_30": {
+          "first_try": {
+            "n": 30,
+            "mean": 16713.916,
+            "median": 16187.724,
+            "p95": 23286.851,
+            "max": 23635.179
+          },
+          "accepted_request": {
+            "n": 30,
+            "mean": 13621.266,
+            "median": 15084.593,
+            "p95": 18265.395,
+            "max": 18542.789
+          },
+          "runner": {
+            "n": 30,
+            "mean": 5566.255,
+            "median": 6240.293,
+            "p95": 8410.971,
+            "max": 9476.078
+          },
+          "outbox": {
+            "n": 30,
+            "mean": 1062.619,
+            "median": 368.346,
+            "p95": 5540.8,
+            "max": 5881.395
+          },
+          "worker_wait": {
+            "n": 30,
+            "mean": 369.527,
+            "median": 20.034,
+            "p95": 3772.859,
+            "max": 5592.329
+          },
+          "api_lock": {
+            "n": 30,
+            "mean": 2321.849,
+            "median": 1322.866,
+            "p95": 10380.156,
+            "max": 11301.641
+          },
+          "initial_http": {
+            "202": 25,
+            "429": 5
+          },
+          "duration_seconds": 23.642,
+          "retries": 0,
+          "vm_cpu_mean": 64.23560899555817,
+          "vm_cpu_max": 96.63236669784845,
+          "vm_memory_available_min_gib": 12.394500732421875
+        },
+        "submit_30": {
+          "first_try": {
+            "n": 30,
+            "mean": 31119.518,
+            "median": 24788.027,
+            "p95": 45181.574,
+            "max": 45193.563
+          },
+          "accepted_request": {
+            "n": 30,
+            "mean": 21131.901,
+            "median": 23050.619,
+            "p95": 29862.248,
+            "max": 29942.219
+          },
+          "runner": {
+            "n": 30,
+            "mean": 14952.794,
+            "median": 16951.668,
+            "p95": 19979.297,
+            "max": 20302.51
+          },
+          "outbox": {
+            "n": 30,
+            "mean": 2059.264,
+            "median": 601.178,
+            "p95": 15807.153,
+            "max": 16367.453
+          },
+          "worker_wait": {
+            "n": 30,
+            "mean": 656.649,
+            "median": 8.225,
+            "p95": 1162.916,
+            "max": 16265.416
+          },
+          "api_lock": {
+            "n": 30,
+            "mean": 919.195,
+            "median": 1100.63,
+            "p95": 2341.299,
+            "max": 2467.871
+          },
+          "initial_http": {
+            "202": 20,
+            "429": 10
+          },
+          "duration_seconds": 45.298,
+          "retries": 0,
+          "vm_cpu_mean": 67.99563441804138,
+          "vm_cpu_max": 92.62759924385632,
+          "vm_memory_available_min_gib": 12.241233825683594
+        }
+      },
+      "unprofiled_cpp_submit_ms": 4628.952,
+      "equal_weight_p95_seconds": 68.468425
+    }
+  ],
+  "excluded_attempts": [
+    {
+      "slots": 8,
+      "directory": "slot-sweep-20261104-122722-9e1850-slots-8",
+      "status": "failed"
+    }
+  ],
+  "candidate_slots": 8,
+  "criterion": "minimum sum of Run and Submit first-try-to-client P95"
+}

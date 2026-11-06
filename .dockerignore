@@ -1,0 +1,11 @@
+.git
+.env
+.venv
+__pycache__
+.pytest_cache
+graphify-out
+*.md
+.backups
+node_modules
+artifacts
+plugin/installed

@@ -1,0 +1,19 @@
+{
+  "services": {
+    "worker": {
+      "image": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3"
+    },
+    "api": {
+      "image": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3"
+    },
+    "runner": {
+      "image": "ccfe4226775d2d01c2e72c8bd4795070400af7fecf76bef599267f5808386549"
+    },
+    "scheduler": {
+      "image": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3"
+    },
+    "validator": {
+      "image": "c4ba0b342ab3d28c6b991ce3f9fcabc22f67931a289845fe683480b10f8879e3"
+    }
+  }
+}

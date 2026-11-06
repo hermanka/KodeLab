@@ -1,0 +1,136 @@
+name: judgementsystem
+
+x-app: &app
+  build: .
+  image: judgementsystem-app:dev
+  init: true
+  restart: unless-stopped
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  networks: [platform]
+
+x-env: &env
+  DB_HOST: db
+  DB_NAME: ${MARIADB_DATABASE:-judgement}
+  DB_USER: ${MARIADB_USER:-judgement}
+  DB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+  REDIS_URL: redis://redis:6379/0
+  RUNNER_URL: http://runner:8001
+  RUNNER_TOKEN: ${RUNNER_TOKEN:?Set RUNNER_TOKEN in .env}
+  CLASS_INVITE_SECRET: ${CLASS_INVITE_SECRET:?Run scripts/init-env.ps1 to add CLASS_INVITE_SECRET}
+  DEFAULT_PROVIDER: custom
+  APP_ORIGINS: http://localhost:${API_PORT:-8000},http://127.0.0.1:${API_PORT:-8000}
+  SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+
+services:
+  db:
+    image: mariadb:11.4@sha256:1292844148b311e4ed4300022a996d39083f415a963e970cf47cad1b3b18e3a6
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-judgement}
+      MARIADB_USER: ${MARIADB_USER:-judgement}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
+    volumes: [mariadb-data:/var/lib/mysql]
+    networks: [platform]
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7.4.2-alpine
+    command: [redis-server, --appendonly, 'yes', --maxmemory-policy, noeviction]
+    restart: unless-stopped
+    volumes: [redis-data:/data]
+    networks: [platform]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *app
+    restart: 'no'
+    environment:
+      <<: *env
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-admin}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+    command: [sh, -c, 'alembic upgrade head && python -m app.seed && python -m app.bootstrap']
+    depends_on:
+      db: {condition: service_healthy}
+
+  api:
+    <<: *app
+    environment: *env
+    networks: [platform, ingress]
+    ports: ['127.0.0.1:${API_PORT:-8000}:8000']
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      runner: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:8000/health/ready")']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    <<: *app
+    environment: *env
+    command: [celery, -A, app.tasks.celery, worker, --loglevel=INFO, --concurrency=50, --prefetch-multiplier=1, --queues=celery]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      runner: {condition: service_healthy}
+
+  validator:
+    <<: *app
+    environment: *env
+    command: [celery, -A, app.tasks.celery, worker, --loglevel=INFO, --concurrency=1, --prefetch-multiplier=1, --queues=validation]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      runner: {condition: service_healthy}
+
+  scheduler:
+    <<: *app
+    environment: *env
+    command: [celery, -A, app.tasks.celery, beat, --loglevel=INFO, --schedule=/tmp/celerybeat-schedule]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+
+  runner:
+    <<: *app
+    # Only this trusted local controller can create containers. Never mount this in api/worker.
+    user: '0:0'
+    environment:
+      RUNNER_TOKEN: ${RUNNER_TOKEN:?Set RUNNER_TOKEN in .env}
+      SANDBOX_IMAGE: judgementsystem-sandbox:gcc12-v2
+      RUNNER_SLOTS: '50'
+    command: [uvicorn, runner.main:app, --host, 0.0.0.0, --port, '8001', --workers, '1']
+    volumes: [/var/run/docker.sock:/var/run/docker.sock]
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:8001/health")']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  sandbox-image:
+    profiles: [tools]
+    build: ./sandbox
+    image: judgementsystem-sandbox:gcc12-v2
+    command: ['--help']
+    network_mode: none
+
+volumes:
+  mariadb-data:
+  redis-data:
+
+networks:
+  platform:
+    internal: true
+  ingress:

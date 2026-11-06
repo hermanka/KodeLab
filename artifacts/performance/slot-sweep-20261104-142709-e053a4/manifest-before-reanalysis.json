@@ -1,0 +1,15 @@
+{
+  "runs": [
+    {
+      "directory": "slot-sweep-20261104-142709-e053a4-slots-12",
+      "slots": 12,
+      "status": "completed"
+    },
+    {
+      "directory": "slot-sweep-20261104-142709-e053a4-slots-8",
+      "slots": 8,
+      "status": "failed"
+    }
+  ],
+  "note": "Each child benchmark restores original service images and Compose commands in finally"
+}
