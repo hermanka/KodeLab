@@ -19,7 +19,8 @@ celery.conf.update(
     task_serializer="json", accept_content=["json"], task_ignore_result=True,
     task_acks_late=True, task_reject_on_worker_lost=True,
     broker_connection_retry_on_startup=True, worker_prefetch_multiplier=1,
-    broker_transport_options={"visibility_timeout": 480},
+    # Fail fast when Redis is unreachable: the API publishes inline and must not hang (21 s -> 1 s measured).
+    broker_transport_options={"visibility_timeout": 480, "socket_connect_timeout": 1, "max_retries": 0},
     beat_schedule={"dispatch-persistent-jobs": {"task": "judgement.dispatch", "schedule": 1.0}},
     timezone="UTC",
     task_routes={"judgement.validate": {"queue": "validation"}},
@@ -65,6 +66,17 @@ def dispatch():
         for job in validations:
             run_validation.apply_async(args=[job.id], queue="validation", retry=False)
             job.dispatch_after = now + timedelta(seconds=30)
+
+
+def publish_attempt(attempt_id):
+    """Immediate best-effort dispatch after the API commit; dispatch() stays the fallback for every failure."""
+    try:
+        run_attempt.apply_async(args=[attempt_id], retry=False)
+    except Exception as exc:
+        logger.warning("Immediate dispatch failed attempt=%s category=%s", attempt_id, type(exc).__name__)
+        with session() as db, db.begin():
+            db.execute(update(Attempt).where(Attempt.id == attempt_id, Attempt.state == "queued")
+                       .values(dispatch_after=utcnow()))
 
 
 @celery.task(name="judgement.run", soft_time_limit=165, time_limit=175)
@@ -143,9 +155,12 @@ def run_validation(job_id):
                 ReferenceSolution.problem_version_id == version.id))}
             if set(solutions) != set(version.languages):
                 raise ValueError("Missing reference language")
+            # The reference must pass within half the CPU limit: parallel load slows the same program ~2x.
+            # shortcut: RLIMIT_CPU takes whole seconds, so a 1 s limit gets no margin; needs sub-second CPU timing to fix.
+            limits = {**version.limits, "time_seconds": max(1, version.limits["time_seconds"] // 2)}
             requests = [JudgeRequest(attempt_id=uuid5(UUID(job.id), language), language=language,
                                      source=solutions[language], mode="judge", cases=cases,
-                                     checker=version.checker, limits=version.limits) for language in version.languages]
+                                     checker=version.checker, limits=limits) for language in version.languages]
             provider_name, provider_revision = job.provider, job.provider_revision
         results = {}
         for request in requests:

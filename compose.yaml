@@ -80,7 +80,7 @@ services:
   worker:
     <<: *app
     environment: *env
-    command: [celery, -A, app.tasks.celery, worker, --loglevel=INFO, --concurrency=50, --prefetch-multiplier=1, --queues=celery]
+    command: [celery, -A, app.tasks.celery, worker, --loglevel=INFO, --concurrency=6, --prefetch-multiplier=1, --queues=celery]
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
@@ -109,8 +109,8 @@ services:
     user: '0:0'
     environment:
       RUNNER_TOKEN: ${RUNNER_TOKEN:?Set RUNNER_TOKEN in .env}
-      SANDBOX_IMAGE: judgementsystem-sandbox:gcc12-v2
-      RUNNER_SLOTS: '50'
+      SANDBOX_IMAGE: judgementsystem-sandbox:gcc12-v3
+      RUNNER_SLOTS: '7'
     command: [uvicorn, runner.main:app, --host, 0.0.0.0, --port, '8001', --workers, '1']
     volumes: [/var/run/docker.sock:/var/run/docker.sock]
     healthcheck:
@@ -122,7 +122,7 @@ services:
   sandbox-image:
     profiles: [tools]
     build: ./sandbox
-    image: judgementsystem-sandbox:gcc12-v2
+    image: judgementsystem-sandbox:gcc12-v3
     command: ['--help']
     network_mode: none
 

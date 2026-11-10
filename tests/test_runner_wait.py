@@ -76,3 +76,27 @@ def fake_execution(monkeypatch, scenario):
 
     monkeypatch.setattr(engine.threading, "Timer", Timer)
     return Container(), timers
+
+
+@pytest.mark.parametrize("code,oom,expected", [
+    (137, False, "TIME_LIMIT_EXCEEDED"), (137, True, "MEMORY_LIMIT_EXCEEDED"), (139, False, "RUNTIME_ERROR")])
+def test_cpu_limit_kill_is_time_limit_and_wall_clock_is_only_a_backstop(code, oom, expected):
+    import json
+    from app.contracts import JudgeRequest
+    from uuid import uuid4
+    calls = []
+
+    def execute(container, phase, payload, seconds, memory_mb, output_limit):
+        calls.append((phase, payload, seconds))
+        if phase == "compile":
+            out = json.dumps({"ok": True, "log": "", "binary": "AA=="}).encode()
+            return engine.Execution(0, out, b"", 10, False, False, False)
+        return engine.Execution(code, b"", b"", 10, False, False, oom)
+
+    runner = engine.DockerRunner.__new__(engine.DockerRunner)
+    runner.image_id, runner.execute = "image", execute
+    request = JudgeRequest(attempt_id=uuid4(), language="c17", source="int main(){}", mode="judge",
+                           limits={"time_seconds": 2}, cases=[{"id": "c", "input": "", "expected": ""}])
+    assert runner.judge_in_sandbox(None, request).verdict == expected
+    phase, payload, seconds = calls[1]
+    assert phase == "run" and payload["cpu_seconds"] == 2 and seconds == 8

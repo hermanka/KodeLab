@@ -173,9 +173,12 @@ class DockerRunner:
             return JudgeResult(verdict="COMPILATION_ERROR", compile_log=compiled["log"], environment=environment)
         results = []
         for case in request.cases:
+            # The time limit is CPU time (RLIMIT_CPU in the sandbox), so a busy host cannot fail a correct program.
+            # Wall clock is only a backstop for sleeping/blocked programs.
             run = self.execute(
-                container, "run", {"binary": compiled["binary"], "input": case.input},
-                seconds=request.limits.time_seconds, memory_mb=request.limits.memory_mb,
+                container, "run", {"binary": compiled["binary"], "input": case.input,
+                                   "cpu_seconds": request.limits.time_seconds},
+                seconds=3 * request.limits.time_seconds + 2, memory_mb=request.limits.memory_mb,
                 output_limit=request.limits.output_bytes,
             )
             stdout = run.stdout.decode("utf-8", errors="replace")
@@ -186,6 +189,9 @@ class DockerRunner:
                 verdict = "TIME_LIMIT_EXCEEDED"
             elif run.oom_killed:
                 verdict = "MEMORY_LIMIT_EXCEEDED"
+            elif run.code == 137:
+                # SIGKILL without OOM or a runner kill: the kernel's hard RLIMIT_CPU.
+                verdict = "TIME_LIMIT_EXCEEDED"
             elif run.code:
                 verdict = "RUNTIME_ERROR"
             elif request.mode == "run":

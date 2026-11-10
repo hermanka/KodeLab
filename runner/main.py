@@ -24,8 +24,9 @@ active_lock = threading.Lock()
 async def lifespan(app):
     required_secret("RUNNER_TOKEN")
     limiter = anyio.to_thread.current_default_thread_limiter()
-    limiter.total_tokens = max(limiter.total_tokens, slot_count)
-    app.state.runner = DockerRunner(os.getenv("SANDBOX_IMAGE", "judgementsystem-sandbox:gcc12-v1"))
+    # Spare threads keep /health answering while every slot is busy.
+    limiter.total_tokens = max(limiter.total_tokens, slot_count + 4)
+    app.state.runner = DockerRunner(os.getenv("SANDBOX_IMAGE", "judgementsystem-sandbox:gcc12-v3"))
 
     async def reap():
         while True:

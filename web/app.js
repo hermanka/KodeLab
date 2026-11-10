@@ -372,12 +372,16 @@ async function sendCode(mode) {
       headers: { "Idempotency-Key": crypto.randomUUID() },
     });
     panel.innerHTML = renderResult(row);
-    const deadline = Date.now() + 210000;
+    const started = Date.now();
+    const deadline = started + 210000;
     while (
       !["completed", "system_error"].includes(row.state) &&
       Date.now() < deadline
     ) {
-      await new Promise((r) => setTimeout(r, 1200));
+      // Fast polling while a result is likely; back off for long queues.
+      await new Promise((r) =>
+        setTimeout(r, Date.now() - started < 15000 ? 400 : 1200),
+      );
       if (ticket !== state.route) return;
       row = await api(ui`/submissions/${row.id}`);
       if (ticket !== state.route) return;

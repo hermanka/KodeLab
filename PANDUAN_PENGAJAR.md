@@ -95,6 +95,8 @@ Kasus `public: false` dan solusi acuan hanya tersedia pada API authoring bagi pe
 4. Jika `valid: true`, panggil `POST /author/problem-versions/{id}/publish` dengan nomor edit yang sama.
 5. Jika `valid: false`, baca hasil privat per bahasa, perbaiki draft beserta kuncinya, kemudian validasi ulang.
 
+Batas waktu soal adalah waktu CPU. Validasi menjalankan solusi acuan dengan **separuh batas waktu** (dibulatkan ke bawah, minimal 1 detik). Contohnya, untuk soal dengan batas 2 detik, kunci harus selesai dalam 1 detik CPU. Ketika server ramai, program yang sama bisa berjalan hingga sekitar 2 kali lebih lambat. Ruang separuh batas ini mencegah jawaban siswa yang sama cepatnya dengan kunci divonis TLE. Jika kunci mendapat `TIME_LIMIT_EXCEEDED` saat validasi, naikkan batas waktu atau percepat kuncinya. Soal dengan batas 1 detik belum mendapat ruang ini, jadi pakai minimal 2 detik bila kunci membutuhkan waktu CPU yang berarti.
+
 Kode acuan dikompilasi dan dijalankan di sandbox. Draft tidak dapat diedit selama validasi berlangsung. Gangguan infrastruktur dicoba ulang maksimal dua kali; setelah `system_error`, draft dibuka kembali untuk perbaikan/validasi baru. Gangguan ini tidak menghasilkan nilai peserta.
 
 Setiap edit menaikkan `edit_revision` dan membatalkan hasil validasi sebelumnya. Publikasi ditolak apabila draft belum lolos validasi yang sesuai revisi/provider saat ini. Validasi tidak otomatis menerbitkan soal.

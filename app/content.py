@@ -473,8 +473,6 @@ def validate_problem(version_id: str, data: RevisionInput, user: User = Depends(
     caps = provider.capabilities()
     if not caps["implemented"] or not set(version.languages).issubset(caps["languages"]):
         raise HTTPException(422, "Provider does not support this package")
-    if not provider.health_check():
-        raise HTTPException(503, "Provider not ready")
     pending = db.scalar(select(func.count()).select_from(ValidationJob).where(
         ValidationJob.actor_id == user.id, ValidationJob.state.in_(["queued", "running", "retry_pending"])))
     hourly = db.scalar(select(func.count()).select_from(ValidationJob).where(
@@ -527,10 +525,8 @@ def publish_problem(version_id: str, data: RevisionInput, user: User = Depends(c
     previous = db.get(ProblemVersion, problem.published_version_id) if problem.published_version_id else None
     if previous and previous.revision >= version.revision:
         raise HTTPException(409, "A newer version is already published")
-    provider = provider_for(version.provider, revision=version.provider_revision, db=db)
-    if not provider.health_check():
-        raise HTTPException(503, "Provider not ready")
-    provider.prepare_problem(version.id)
+    # Fails with 503 if the validated plugin revision is gone; no runner call under the admission lock.
+    provider_for(version.provider, revision=version.provider_revision, db=db)
     version.status, problem.published_version_id = "published", version.id
     audit(db, user, "problem.published", version.id, validation_job_id=job.id)
     db.commit()

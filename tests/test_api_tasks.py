@@ -118,3 +118,23 @@ def test_dispatch_recovers_orphaned_attempt_and_sql_queue(client, monkeypatch):
         assert attempt.state == "retry_pending"
         assert attempt.lease_token is None
         assert attempt.retries == 1
+
+
+def test_submission_is_published_immediately_and_falls_back_to_scheduler(client, monkeypatch, no_broker):
+    from app.tasks import dispatch, run_attempt
+
+    row = client.post("/submissions", json={"language": "c17", "source": "x"}).json()
+    assert no_broker == [row["attempt_id"]]
+    dispatch.run()  # Already published: the scheduler must not send a duplicate right away.
+    assert no_broker == [row["attempt_id"]]
+
+    def broker_down(args, **kwargs):
+        raise ConnectionError("redis offline")
+
+    monkeypatch.setattr(run_attempt, "apply_async", broker_down)
+    lost = client.post("/submissions", json={"language": "c17", "source": "y"})
+    assert lost.status_code == 202
+    sent = []
+    monkeypatch.setattr(run_attempt, "apply_async", lambda args, **kwargs: sent.append(args[0]))
+    dispatch.run()
+    assert sent == [lost.json()["attempt_id"]]

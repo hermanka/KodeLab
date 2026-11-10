@@ -80,7 +80,11 @@ def run_binary(payload):
     fd = os.open(str(input_file), os.O_RDONLY)
     os.dup2(fd, 0)
     os.close(fd)
-    # The remaining limits (memory, pids, wall time, output) are enforced externally.
+    # CPU time survives execve. soft == hard makes the kernel send SIGKILL, which PID 1 cannot ignore.
+    # shortcut: this bootstrap's own ~0.1 s CPU counts toward the limit; subtract it if limits drop below 1 s.
+    cpu = int(payload["cpu_seconds"])
+    resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu))
+    # The remaining limits (memory, pids, wall-clock backstop, output) are enforced externally.
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     resource.setrlimit(resource.RLIMIT_FSIZE, (1024 * 1024, 1024 * 1024))
     os.execve(str(executable), [str(executable)], {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"})

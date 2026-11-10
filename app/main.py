@@ -21,6 +21,7 @@ from app.db import get_db
 from app.models import Attempt, Course, CourseMember, Problem, ProblemVersion, QuotaLock, Submission, User, utcnow
 from app.content import course_access, is_instructor, problem_access, public_problem, router as content_router
 from app.providers import ProviderUnavailable, available_providers, choose_provider, provider_for
+from app.tasks import publish_attempt
 from app.judge_plugins import router as plugins_router
 from app.learning import authorize_step_submission, router as learning_router
 from app.course_lifecycle import router as lifecycle_router
@@ -189,26 +190,13 @@ def create_submission(request, mode, db, key, user, *, review_submission=None):
          **({"review_submission_id": review_id} if review_id else {})}, sort_keys=True, ensure_ascii=False,
     ).encode()).hexdigest()
     pinned = bool(request.enrollment_id) or review_id is not None
-    existing = existing_submission(db, user, request, key, request_hash, review_id, lock=False)
-    prepared = None
-    if existing is None:
-        problem, _, name, provider = submission_context(request, mode, db, user, pinned=pinned, lock=False)
-        problem_id = problem.id
-        prepared = (name, getattr(provider, "revision", None))
-    # Release the read transaction/connection and stale ORM state before network I/O.
-    db.rollback()
-    if prepared is not None:
-        if not provider.health_check():
-            raise HTTPException(503, "Selected provider is not ready")
-        provider.prepare_problem(problem_id)
-    # Keep admission -> enrollment/course ordering; recheck mutable state after preflight.
+    # No runner health check here: the attempt is persisted and retried, and a busy runner must not reject learners.
+    # Keep admission -> enrollment/course lock ordering.
     db.scalar(select(QuotaLock).where(QuotaLock.id == "admission").with_for_update())
     existing = existing_submission(db, user, request, key, request_hash, review_id, lock=True)
     if existing is not None:
         return existing
     problem, course, name, provider = submission_context(request, mode, db, user, pinned=pinned, lock=True)
-    if prepared != (name, getattr(provider, "revision", None)):
-        raise HTTPException(409, "Judging provider changed; retry the request")
     pending = db.scalar(select(func.count()).select_from(Attempt).where(
         Attempt.state.in_(["queued", "running", "retry_pending"])))
     if pending >= 50:
@@ -238,7 +226,9 @@ def create_submission(request, mode, db, key, user, *, review_submission=None):
     db.add(submission)
     try:
         db.flush()
-        attempt = Attempt(submission_id=submission.id, provider=name, snapshot={
+        # Published right after commit; the scheduler only re-sends if that message is lost for 30 s.
+        attempt = Attempt(submission_id=submission.id, provider=name,
+                          dispatch_after=utcnow() + timedelta(seconds=30), snapshot={
             "problem_version_id": problem.id, "language": request.language,
             "limits": problem.limits, "checker": problem.checker,
             "scoring_policy": problem.scoring_policy,
@@ -256,7 +246,8 @@ def create_submission(request, mode, db, key, user, *, review_submission=None):
         if existing and existing.request_hash == request_hash:
             return serialize_submission(existing, db.scalar(select(Attempt).where(Attempt.submission_id == existing.id)))
         raise HTTPException(409, "Submission conflict")
-    # SQL is the persistent outbox; the scheduler dispatches queued attempts to Redis.
+    # SQL stays the persistent outbox: a failed publish falls back to the scheduler.
+    publish_attempt(attempt.id)
     return serialize_submission(submission, attempt)
 
 

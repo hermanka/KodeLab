@@ -1,5 +1,21 @@
 # Verifikasi fondasi C/C++
 
+## Milestone M5.1–M5.2: kirim langsung dan polling (10 November 2026)
+
+Image aplikasi dibangun ulang. Suite backend: **101 passed, 15 skipped**. Suite `smoke` pada stack lengkap: 9 skenario judge lulus. `npm run test:compiler`: 4 skenario lulus. Waktu permintaan sampai worker mulai bekerja: median 0,10–0,11 s (6 Run dan 6 Submit berurutan); permintaan sampai hasil: Run median 2,0 s, Submit median 4,95 s. Dengan Redis dihentikan, `POST /submissions` tetap 202 dalam 4,0 s, dan pekerjaan selesai ACCEPTED lewat scheduler setelah Redis dijalankan lagi.
+
+`npm run test:browser` **gagal** sebelum mencapai editor: tabel Administrasi hanya memuat 100 akun tertua, sedangkan database berisi 448 akun, sehingga akun yang baru dibuat tidak pernah tampil. Kegagalan ini tidak terkait perubahan M5 dan belum diperbaiki.
+
+Data uji yang ditambahkan ke database: 3 akun pengajar uji dan sekitar 25 kiriman pada soal `sum-v1`.
+
+## Milestone M1: health runner dan TLE palsu (6 November 2026)
+
+Suite backend: **100 passed, 15 skipped**, dijalankan dengan kode yang di-bind-mount ke image `judgementsystem-app:dev` karena image tidak bisa dibangun ulang tanpa internet. Uji sandbox Docker (`RUN_SANDBOX_TESTS=1`, image `gcc12-v3`, dibangun dengan builder klasik secara offline): **12 passed**. Uji `test_health_answers_while_every_slot_is_busy` gagal pada `runner/main.py` versi commit sebelumnya dan lulus pada versi baru.
+
+Pengukuran TLE palsu dilakukan langsung ke runner (tanpa DB) dengan program C ber-loop `volatile` dan batas 2 detik. Pada konfigurasi lama (wall-clock, 50 paralel), 45 dari 50 program yang sama dengan kunci divonis TLE. Waktu CPU program yang sama naik dari 1,37 s saat sendirian menjadi sekitar 2,4 s pada 6–8 paralel (i7-9750H, 6 core / 12 thread). Pada konfigurasi baru (batas waktu CPU, validasi acuan dengan separuh batas, 7 slot), program 0,8 s CPU yang lolos margin menghasilkan **50/50 ACCEPTED pada 7 paralel**, sedangkan program 1,1 s CPU ditolak saat validasi. Tabel lengkap ada di [MILESTONE_PERBAIKAN.md](MILESTONE_PERBAIKAN.md#m12-tle-palsu-saat-ramai).
+
+Belum dijalankan: uji beban 30 pengguna pada stack lengkap. Runner yang dinyalakan untuk pengukuran sudah dihapus kembali, dan tidak ada container sandbox yang tersisa.
+
 ## Konfirmasi urutan 12 lalu 8 slot — 4 November 2026
 
 Kedua pengujian 30 pengguna selesai: 128/128 pekerjaan API benar, tanpa retry eksekusi, progres/nilai seluruh peserta 100. P95 Run/Submit sejak percobaan pertama: 12 slot 22,937/42,178 detik; 8 slot 24,534/46,195 detik. Pemenang berbalik dibanding putaran pertama; 8 masih lebih rendah pada statistik gabungan dua putaran, tetapi belum terbukti selalu optimal.

@@ -47,3 +47,7 @@ Sweep default membandingkan 4, 8, 12, dan 16 proses worker/slot runner secara be
 Setiap kapasitas mempunyai direktori hasil sendiri. Direktori sweep menyimpan `manifest.json`, `comparison.json`, dan `LAPORAN_PERBANDINGAN_SLOT.md`; laporan per kapasitas tetap memuat timeline dan jalur antar-container. Kriteria kandidat adalah jumlah P95 Run dan Submit sejak percobaan pertama, termasuk penolakan 429 dan jeda retry alat uji. Waktu setelah request diterima dan waktu runner juga ditampilkan terpisah.
 
 Jika cohort gagal/tidak lengkap, sweep berhenti setelah pemulihan layanan. `-ResumeDirectory` mempertahankan percobaan gagal dan menulis percobaan pengganti ke direktori baru. Peringkat memakai cohort lengkap; kegagalan tetap dicantumkan sebagai temuan stabilitas dan tidak boleh disembunyikan. Akun/kelas fixture baru dipakai pada setiap pengulangan. Satu pengulangan berurutan belum menghilangkan efek urutan/cache/variasi host; kandidat perlu dikonfirmasi sebelum mengubah konfigurasi normal.
+
+## Kapasitas host
+
+`capacity.py` mengukur detik-CPU per Run atau Submit dan throughput runner, langsung ke runner tanpa database. Cara pakai dan cara memakai hasilnya untuk menghitung kebutuhan server ada di [LAPORAN_KEBUTUHAN_SERVER.md](../../LAPORAN_KEBUTUHAN_SERVER.md).

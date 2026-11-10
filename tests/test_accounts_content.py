@@ -278,3 +278,14 @@ def test_quota_and_audit_do_not_include_key_payload(client, monkeypatch):
         rows = db.scalars(select(AuditEvent).where(AuditEvent.action == "problem.keys_read")).all()
         assert len(rows) == 1 and rows[0].details == {}
         assert "password" not in str([r.details for r in db.scalars(select(AuditEvent))])
+
+
+def test_reference_validation_runs_with_half_the_time_limit(client, monkeypatch):
+    teacher, _ = account(client, "teacher_margin", "teacher")
+    cid = course(teacher)
+    requests = fake_judge(monkeypatch)
+    for limit, halved in ((5, 2), (2, 1), (1, 1)):
+        body = {**package(), "limits": {"time_seconds": limit}}
+        version = teacher.post(f"/author/courses/{cid}/problems", json=body).json()
+        assert validate(teacher, version)["valid"] is True
+        assert {r.limits.time_seconds for r in requests[-2:]} == {halved}

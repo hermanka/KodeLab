@@ -76,3 +76,13 @@ Dicatat pada 31 Oktober 2026. Butir yang dicentang sudah diimplementasikan; buti
 - [x] Pilihan plugin pada editor soal dan penguncian revisi pada validasi/soal/attempt.
 - [x] Pertahankan sandbox, retry, sanitasi hasil, progres, dan histori.
 - [x] Sediakan SDK v1, paket contoh, panduan pengembangan, dan pengujian plugin.
+
+## Milestone perbaikan audit Ponytail (6 November 2026)
+
+Rincian, file, dan kriteria selesai ada di [MILESTONE_PERBAIKAN.md](MILESTONE_PERBAIKAN.md).
+
+- [x] M1 — Penilaian tetap benar saat ramai (health runner, batas waktu CPU, margin acuan, 6 worker/7 slot). Uji beban stack penuh masih tertunda.
+- [ ] M2 — Siap dibuka untuk satu kelas (IP di belakang proxy, kuota login, pemasangan plugin).
+- [ ] M3 — Perampingan kode.
+- [ ] M4 — Performa dan kerapian.
+- [ ] M5 — Run dan Submit lebih cepat. Selesai: kirim langsung ke worker (M5.1) dan polling 0,4 detik (M5.2). Belum: semua kasus uji dalam satu start container (M5.3).

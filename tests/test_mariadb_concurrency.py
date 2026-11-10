@@ -124,39 +124,6 @@ def mariadb_admin(monkeypatch):
     engine.cache_clear()
 
 
-def test_slow_health_check_holds_no_connection_or_admission_lock(mariadb_admin, monkeypatch):
-    entered, release = threading.Event(), threading.Event()
-    outcomes = []
-
-    def health(provider):
-        if not entered.is_set():
-            assert engine().pool.checkedout() == 0
-            entered.set()
-            assert release.wait(10)
-        return True
-
-    monkeypatch.setattr(CustomProvider, 'health_check', health)
-    body = {'language': 'c17', 'source': 'int main(){}'}
-
-    def slow_request():
-        try:
-            outcomes.append(mariadb_admin.post('/submissions', json=body).status_code)
-        except Exception as exc:
-            outcomes.append(type(exc).__name__)
-
-    slow = threading.Thread(target=slow_request)
-    slow.start()
-    try:
-        assert entered.wait(5), 'Request did not reach health check'
-        with session() as probe, probe.begin():
-            assert probe.scalar(select(QuotaLock).where(QuotaLock.id == 'admission').with_for_update(nowait=True))
-        assert mariadb_admin.post('/submissions', json=body).status_code == 202
-    finally:
-        release.set()
-        slow.join(timeout=15)
-    assert not slow.is_alive() and outcomes == [202]
-
-
 def test_concurrent_admission_preserves_global_quota_and_idempotency(mariadb_admin):
     uid = mariadb_admin.get('/auth/me').json()['id']
     fillers = []
