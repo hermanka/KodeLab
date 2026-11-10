@@ -109,6 +109,7 @@ services:
     <<: *app
     # Only this trusted local controller can create containers. Never mount this in api/worker.
     user: '0:0'
+    stop_grace_period: 30s  # Time to remove the prepared sandboxes on shutdown.
     environment:
       RUNNER_TOKEN: ${RUNNER_TOKEN:?Set RUNNER_TOKEN in .env}
       SANDBOX_IMAGE: judgementsystem-sandbox:gcc12-v4

@@ -95,8 +95,13 @@ class DockerRunner:
         self.closed.set()
         self.work.set()
         self.maintainer.join(timeout=30)  # Finishes pending removals and any refill already in flight.
-        while self.pool:
-            self.discard(self.pool.popleft())
+        # In parallel: the whole pool must be gone within the container's stop grace period.
+        removals = [threading.Thread(target=self.discard, args=(sandbox,)) for sandbox in self.pool]
+        self.pool.clear()
+        for thread in removals:
+            thread.start()
+        for thread in removals:
+            thread.join()
         self.client.close()
 
     def maintain(self):
