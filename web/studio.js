@@ -402,17 +402,17 @@ async function pollValidation(jobId, ticket) {
     }
   }
 }
-async function adminPage(tab) {
+async function adminPage(tab, offset) {
   if (tab === "plugins") return pluginsPage();
   if (tab === "audit") {
     const rows = await api("/admin/audit");
     return ui`${head(tr("ADMINISTRASI"), tr("Jejak perubahan."), tr("Catatan tindakan sensitif tanpa menyertakan kata sandi atau isi kunci."), '<a class="btn" href="#/admin">Kelola akun</a>')}<div class="table-wrap"><table><thead><tr><th scope="col">Waktu</th><th scope="col">Tindakan</th><th scope="col">Objek</th></tr></thead><tbody>${rows.map((r) => ui`<tr><td>${esc(date(r.created_at))}</td><td>${esc(r.action)}</td><td class="mono">${esc(r.object_id.slice(0, 12))}…</td></tr>`).join("")}</tbody></table></div>`;
   }
   const [rows, providers] = await Promise.all([
-    api("/admin/users"),
+    api(ui`/admin/users?offset=${offset}`),
     api("/providers"),
   ]);
-  return ui`${head(tr("ADMINISTRASI"), tr("Kelola akses dengan tepat."), tr("Buat akun pengajar dan peserta, atur peran, atau cabut akses akun."), '<button class="btn primary" data-action="new-user">' + icon("plus") + tr("Buat akun</button>"))}<div class="row wrap"><span class="badge active">Penilai custom · ${providers.custom.healthy ? tr("tersedia") : tr("belum siap")}</span><span class="badge">DOMjudge · belum diaktifkan</span><a class="btn small" href="#/admin/plugins">Plugin penilaian</a><a class="btn small" href="#/admin/audit">${icon("shield")}Lihat audit</a></div><div class="subtle-note">Perubahan izin mencabut seluruh sesi akun terkait. Akunmu sendiri tidak dapat diubah melalui tindakan ini.</div><div class="table-wrap"><table><thead><tr><th scope="col">Username</th><th scope="col">Peran</th><th scope="col">Status</th><th scope="col">Tindakan</th></tr></thead><tbody>${rows.map((u) => ui`<tr><td><strong>${esc(u.username)}</strong></td><td>${roleLabel(u.role)}</td><td>${badge(u.is_active ? tr("AKTIF") : tr("NONAKTIF"), u.is_active ? "active" : "")}</td><td><div class="table-actions">${u.id !== state.user.id ? ui`${btn(tr("Ubah peran"), "change-role", u.id)}<button class="btn small" data-action="toggle-user" data-id="${u.id}" data-active="${u.is_active}">${u.is_active ? tr("Nonaktifkan") : tr("Aktifkan")}</button>` : badge("AKUNMU")}</div></td></tr>`).join("")}</tbody></table></div>`;
+  return ui`${head(tr("ADMINISTRASI"), tr("Kelola akses dengan tepat."), tr("Buat akun pengajar dan peserta, atur peran, atau cabut akses akun."), '<button class="btn primary" data-action="new-user">' + icon("plus") + tr("Buat akun</button>"))}<div class="row wrap"><span class="badge active">Penilai custom · ${providers.custom.healthy ? tr("tersedia") : tr("belum siap")}</span><span class="badge">DOMjudge · belum diaktifkan</span><a class="btn small" href="#/admin/plugins">Plugin penilaian</a><a class="btn small" href="#/admin/audit">${icon("shield")}Lihat audit</a></div><div class="subtle-note">Perubahan izin mencabut seluruh sesi akun terkait. Akunmu sendiri tidak dapat diubah melalui tindakan ini.</div><div class="table-wrap"><table><thead><tr><th scope="col">Username</th><th scope="col">Peran</th><th scope="col">Status</th><th scope="col">Tindakan</th></tr></thead><tbody>${rows.map((u) => ui`<tr><td><strong>${esc(u.username)}</strong></td><td>${roleLabel(u.role)}</td><td>${badge(u.is_active ? tr("AKTIF") : tr("NONAKTIF"), u.is_active ? "active" : "")}</td><td><div class="table-actions">${u.id !== state.user.id ? ui`${btn(tr("Ubah peran"), "change-role", u.id)}<button class="btn small" data-action="toggle-user" data-id="${u.id}" data-active="${u.is_active}">${u.is_active ? tr("Nonaktifkan") : tr("Aktifkan")}</button>` : badge("AKUNMU")}</div></td></tr>`).join("")}</tbody></table></div>` + reportPaging("/admin/page", offset, rows.length);
 }
 export async function renderStudio(parts, ticket) {
   document.title = tr("Studio pengajar — KodeLab");
@@ -425,7 +425,7 @@ export async function renderStudio(parts, ticket) {
   if (route === "course") return coursePage(id, cid || "materials", reportOffset(parts[3]), ticket);
   if (route === "path-progress") return pathReport(id, reportOffset(cid));
   if (route === "participant-work") return participantReport(id, cid, reportOffset(parts[3]));
-  if (route === "admin") return adminPage(id);
+  if (route === "admin") return adminPage(id, reportOffset(cid));
   return contentEditor(route.replace("-editor", ""), id, cid, ticket);
 }
 export async function studioAction(action, el) {

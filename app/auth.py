@@ -282,7 +282,7 @@ def admin_create_user(data: CreateUser, user: User = Depends(administrator), db:
 
 @router.get("/admin/users")
 def list_users(offset: int = 0, user: User = Depends(administrator), db: Session = Depends(get_db)):
-    return [user_view(row) for row in db.scalars(select(User).order_by(User.created_at).offset(max(0, offset)).limit(100))]
+    return [user_view(row) for row in db.scalars(select(User).order_by(User.created_at.desc(), User.id).offset(max(0, offset)).limit(100))]
 
 
 @router.patch("/admin/users/{user_id}")
