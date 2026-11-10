@@ -1,5 +1,13 @@
 # Verifikasi fondasi C/C++
 
+## Milestone M5.3–M5.6: satu start, kolam sandbox, precompiled header (10 November 2026)
+
+Image aplikasi dan sandbox (`gcc12-v4`) dibangun ulang. Suite backend: **110 passed, 21 skipped**. Uji sandbox Docker (`RUN_SANDBOX_TESTS=1`): **37 passed** bersama uji runner, termasuk percobaan menjangkau bootstrap, isolasi antar-input, kolam siap pakai, dan precompiled header. Suite `smoke`, `smoke_authoring`, dan `smoke_plugins` lulus pada stack lengkap. `npm run test:browser` (8 kelompok) dan `npm run test:compiler` (4 skenario) lulus; uji browser sebelumnya gagal karena daftar akun admin berhenti di 100 akun, dan itu sudah diperbaiki.
+
+Waktu tunggu lewat stack lengkap (`scripts/profiling/concurrent_users.py`, polling 0,4 detik): satu pengguna 0,48 s (Run C), 0,47 s (Submit C), 0,88 s (Submit C++); 12 pengguna serentak, 3 putaran, maksimal 2,01 s, 2,00 s, dan 3,03 s. Burst pertama setelah stack dinyalakan mencapai 4,04 s. Uji TLE palsu: program 0,64 detik-CPU dengan batas 2 detik, 50 pekerjaan pada 7 paralel, dua kali, 100/100 ACCEPTED.
+
+`scripts/test-mariadb-concurrency.ps1` (PowerShell 7): 3 passed pada MariaDB sementara. Belum dijalankan: uji beban 30 pengguna dan uji pada Linux native. Pengujian menambah sekitar 90 akun pengajar uji (dinonaktifkan oleh skrip konkurensi) dan beberapa ratus kiriman pada soal `sum-v1`.
+
 ## Milestone M5.1–M5.2: kirim langsung dan polling (10 November 2026)
 
 Image aplikasi dibangun ulang. Suite backend: **101 passed, 15 skipped**. Suite `smoke` pada stack lengkap: 9 skenario judge lulus. `npm run test:compiler`: 4 skenario lulus. Waktu permintaan sampai worker mulai bekerja: median 0,10–0,11 s (6 Run dan 6 Submit berurutan); permintaan sampai hasil: Run median 2,0 s, Submit median 4,95 s. Dengan Redis dihentikan, `POST /submissions` tetap 202 dalam 4,0 s, dan pekerjaan selesai ACCEPTED lewat scheduler setelah Redis dijalankan lagi.

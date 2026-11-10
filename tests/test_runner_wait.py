@@ -1,102 +1,95 @@
-"""Deterministic deadline races must not produce a false participant verdict."""
+"""The runner trusts one answer line from the bootstrap; anything else is an infrastructure failure, never a verdict."""
+import json
+import threading
 from types import SimpleNamespace
+from uuid import uuid4
 
-from docker.errors import APIError
 import pytest
 
 import runner.engine as engine
+from app.contracts import JudgeRequest
 
 
-@pytest.mark.parametrize("scenario,expected_timeout,expected_inspections", [
-    ("normal", False, 1), ("timeout", True, 1), ("exit_race", False, 2)])
-def test_wait_instead_of_polling_and_deadline_exit_race(monkeypatch, scenario, expected_timeout, expected_inspections):
-    container, timer = fake_execution(monkeypatch, scenario)
-    result = engine.DockerRunner.__new__(engine.DockerRunner).execute(container, "run", {}, 1, 64, 1024)
-    assert result.timed_out is expected_timeout
-    assert container.inspections == expected_inspections
-    assert container.wait_calls == 1
-    assert timer[0].cancelled and timer[0].joined
+def fake_container(frames, block=None):
+    sent = []
+
+    def stream():
+        yield from frames
+        if block:
+            block.wait(5)
+
+    return SimpleNamespace(
+        sent=sent, start=lambda: None, attach=lambda **kwargs: stream(),
+        attach_socket=lambda **kwargs: SimpleNamespace(
+            _sock=SimpleNamespace(settimeout=lambda seconds: None, sendall=sent.append), close=lambda: None))
 
 
-@pytest.mark.parametrize("scenario", ["wait_failure", "kill_failure"])
-def test_monitoring_failure_is_infrastructure_error_and_cancels_timer(monkeypatch, scenario):
-    container, timer = fake_execution(monkeypatch, scenario)
-    with pytest.raises(RuntimeError, match="wait failure|deadline enforcement failed"):
-        engine.DockerRunner.__new__(engine.DockerRunner).execute(container, "run", {}, 1, 64, 1024)
-    assert timer[0].cancelled and timer[0].joined
+def test_answer_line_is_returned_without_waiting_for_the_container_to_exit():
+    block = threading.Event()  # The stream stays open: the container has not exited yet.
+    container = fake_container([(b'{"ok": ', None), (None, b"ignored stderr\n"), (b'true}\n', None)], block)
+    try:
+        assert engine.Sandbox(container).run({"source": "x"}, seconds=5) == {"ok": True}
+    finally:
+        block.set()
+    assert container.sent == [b'{"source": "x"}\n']
 
 
-def fake_execution(monkeypatch, scenario):
-    timers = []
-
-    class Timer:
-        def __init__(self, seconds, callback):
-            self.callback = callback
-            self.cancelled = self.joined = False
-            timers.append(self)
-        def start(self):
-            pass
-        def cancel(self):
-            self.cancelled = True
-        def join(self):
-            self.joined = True
-
-    class Container:
-        inspections = wait_calls = 0
-        status = "running"
-        attrs = {"State": {"ExitCode": 0, "OOMKilled": False}}
-        def update(self, **kwargs):
-            pass
-        def attach_socket(self, **kwargs):
-            return SimpleNamespace(_sock=SimpleNamespace(settimeout=lambda n: None, sendall=lambda b: None), close=lambda: None)
-        def attach(self, **kwargs):
-            return (item for item in ())
-        def start(self):
-            pass
-        def kill(self):
-            if scenario == "exit_race":
-                raise APIError("Already exited")
-            if scenario == "kill_failure":
-                raise RuntimeError("Docker unavailable")
-            self.status = "exited"
-            self.attrs = {"State": {"ExitCode": 137, "OOMKilled": False}}
-        def reload(self):
-            self.inspections += 1
-        def wait(self, *, timeout, condition):
-            self.wait_calls += 1
-            assert condition == "not-running" and timeout > 1
-            if scenario == "wait_failure":
-                raise RuntimeError("wait failure")
-            if scenario == "exit_race":
-                self.status = "exited"
-            if scenario in ("timeout", "exit_race", "kill_failure"):
-                timers[0].callback()
-            self.status = "exited"
-            return {"StatusCode": self.attrs["State"]["ExitCode"]}
-
-    monkeypatch.setattr(engine.threading, "Timer", Timer)
-    return Container(), timers
+@pytest.mark.parametrize("frames,blocks", [
+    ([], False),                         # Bootstrap crashed: stream ended without an answer.
+    ([(b'{"ok": tr', None)], False),     # Truncated answer.
+    ([(None, b"Traceback\n")], False),   # Only stderr.
+    ([], True),                          # No answer before the deadline.
+])
+def test_missing_or_late_answer_is_an_infrastructure_error(frames, blocks):
+    block = threading.Event() if blocks else None
+    try:
+        with pytest.raises(RuntimeError, match="bootstrap failed"):
+            engine.Sandbox(fake_container(frames, block)).run({}, seconds=0.2)
+    finally:
+        if block:
+            block.set()
 
 
-@pytest.mark.parametrize("code,oom,expected", [
-    (137, False, "TIME_LIMIT_EXCEEDED"), (137, True, "MEMORY_LIMIT_EXCEEDED"), (139, False, "RUNTIME_ERROR")])
-def test_cpu_limit_kill_is_time_limit_and_wall_clock_is_only_a_backstop(code, oom, expected):
-    import json
-    from app.contracts import JudgeRequest
-    from uuid import uuid4
+def test_oversized_answer_is_an_infrastructure_error(monkeypatch):
+    monkeypatch.setattr(engine, "OUTPUT_LIMIT", 8)
+    with pytest.raises(RuntimeError, match="bootstrap failed"):
+        engine.Sandbox(fake_container([(b'{"ok": true}\n', None)])).run({}, seconds=1)
+
+
+def case(**changes):
+    return {"exit": 0, "timed_out": False, "output_exceeded": False, "cpu_ms": 5, "memory_exceeded": False,
+            "stdout": "ok\n", "stderr": "", **changes}
+
+
+@pytest.mark.parametrize("changes,expected", [
+    ({}, "ACCEPTED"), ({"stdout": "no"}, "WRONG_ANSWER"), ({"exit": 3}, "RUNTIME_ERROR"), ({"exit": -11}, "RUNTIME_ERROR"),
+    ({"exit": -24}, "TIME_LIMIT_EXCEEDED"), ({"cpu_ms": 2000}, "TIME_LIMIT_EXCEEDED"),
+    ({"exit": -9, "timed_out": True}, "TIME_LIMIT_EXCEEDED"),
+    ({"exit": -9}, "MEMORY_LIMIT_EXCEEDED"), ({"exit": -9, "memory_exceeded": True, "cpu_ms": 2000}, "MEMORY_LIMIT_EXCEEDED"),
+    ({"exit": -9, "output_exceeded": True}, "OUTPUT_LIMIT_EXCEEDED")])
+def test_one_start_carries_all_inputs_and_raw_results_map_to_verdicts(changes, expected):
     calls = []
 
-    def execute(container, phase, payload, seconds, memory_mb, output_limit):
-        calls.append((phase, payload, seconds))
-        if phase == "compile":
-            out = json.dumps({"ok": True, "log": "", "binary": "AA=="}).encode()
-            return engine.Execution(0, out, b"", 10, False, False, False)
-        return engine.Execution(code, b"", b"", 10, False, False, oom)
+    def run(payload, seconds):
+        calls.append((payload, seconds))
+        return {"ok": True, "log": "", "cases": [case(**changes), case()]}
 
     runner = engine.DockerRunner.__new__(engine.DockerRunner)
-    runner.image_id, runner.execute = "image", execute
+    runner.image_id = "image"
     request = JudgeRequest(attempt_id=uuid4(), language="c17", source="int main(){}", mode="judge",
-                           limits={"time_seconds": 2}, cases=[{"id": "c", "input": "", "expected": ""}])
-    assert runner.judge_in_sandbox(None, request).verdict == expected
-    phase, payload, seconds = calls[1]
-    assert phase == "run" and payload["cpu_seconds"] == 2 and seconds == 8
+                           limits={"time_seconds": 2, "memory_mb": 64},
+                           cases=[{"id": "a", "input": "1", "expected": "ok"}, {"id": "b", "input": "2", "expected": "ok"}])
+    result = runner.judge_in_sandbox(SimpleNamespace(run=run), request)
+    assert [item.verdict for item in result.cases] == [expected, "ACCEPTED"] and result.verdict == expected
+    (payload, seconds), = calls
+    assert payload["inputs"] == ["1", "2"] and "expected" not in json.dumps(payload)
+    assert payload["cpu_seconds"] == 2 and payload["wall_seconds"] == 5 and seconds == 10 + 2 * 5 + 10
+
+
+def test_compilation_error_carries_the_log_and_no_cases():
+    runner = engine.DockerRunner.__new__(engine.DockerRunner)
+    runner.image_id = "image"
+    request = JudgeRequest(attempt_id=uuid4(), language="c17", source="int main( {", mode="run",
+                           limits={}, cases=[{"id": "a", "input": ""}])
+    result = runner.judge_in_sandbox(SimpleNamespace(run=lambda payload, seconds: {"ok": False, "log": "error: x"}), request)
+    assert result.verdict == "COMPILATION_ERROR" and result.compile_log == "error: x" and not result.cases

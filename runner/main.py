@@ -26,7 +26,9 @@ async def lifespan(app):
     limiter = anyio.to_thread.current_default_thread_limiter()
     # Spare threads keep /health answering while every slot is busy.
     limiter.total_tokens = max(limiter.total_tokens, slot_count + 4)
-    app.state.runner = DockerRunner(os.getenv("SANDBOX_IMAGE", "judgementsystem-sandbox:gcc12-v3"))
+    # One warm sandbox per slot by default, so a full burst starts without creating containers.
+    app.state.runner = DockerRunner(os.getenv("SANDBOX_IMAGE", "judgementsystem-sandbox:gcc12-v4"),
+                                    warm=int(os.getenv("RUNNER_WARM", slot_count)))
 
     async def reap():
         while True:
@@ -45,7 +47,7 @@ async def lifespan(app):
             await task
         except asyncio.CancelledError:
             pass
-        app.state.runner.client.close()
+        app.state.runner.close()
 
 
 app = FastAPI(title="Internal C/C++ runner", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)

@@ -1,115 +1,114 @@
-# Kebutuhan server untuk 10 dan 20 pengguna serentak
+# Kebutuhan server untuk 11–12 pengguna serentak
 
-Perhitungan ini dibuat pada 10 November 2026. Angka dasarnya diukur langsung pada kode setelah perbaikan M1: batas waktu CPU, 6 worker / 7 slot, dan image `gcc12-v3`. Pengukuran dilakukan di laptop pengembangan.
+Diperbarui 10 November 2026, setelah milestone M5 (satu start container per pekerjaan, kolam sandbox siap pakai, precompiled header C++, API 4 proses). Laporan sebelumnya untuk 10 dan 20 pengguna memakai angka sebelum M5 dan sudah tidak berlaku; isinya ada di riwayat git.
 
 ## Ringkasan
 
-"Waktu wajar" di sini artinya hasil **Run tampil ≤ 5 detik** dan hasil **Submit tampil ≤ 10 detik** sejak tombol ditekan, termasuk antrean dan polling. Kalau semua pengguna menekan tombol pada detik yang sama, waktu ini menjadi waktu tunggu terlama, yaitu yang dialami pengguna terakhir.
+Target: hasil Run dan Submit tampil paling lama 5 detik, termasuk saat semua pengguna menekan tombol pada detik yang sama.
 
-| Skenario | Core fisik | RAM | Worker / slot runner | Disk |
-|---|---:|---:|---:|---:|
-| **10 pengguna**, lab biasa (aksi tersebar) | 6 | 8 GB | 6 / 7 | 40 GB SSD |
-| **10 pengguna**, semua menekan bersamaan | 14 | 12 GB | 10 / 11 | 40 GB SSD |
-| **20 pengguna**, lab biasa (aksi tersebar) | 10 | 12 GB | 10 / 11 | 40 GB SSD |
-| **20 pengguna**, semua menekan bersamaan | 28 | 16 GB | 20 / 21 | 40 GB SSD |
+**Target ini sudah tercapai di laptop pengembangan** (6 core fisik / 12 thread, 16 GB), diukur lewat stack lengkap:
 
-- **Satuan core:** "core fisik" setara dengan satu core i7-9750H yang menjalankan Docker Desktop. Di cloud, 1 vCPU biasanya sama dengan 1 hyperthread, jadi **kalikan dua untuk mendapatkan jumlah vCPU**. Contoh: 10 core fisik ≈ 20 vCPU.
-- **Spesifikasi laptop pengembangan saat ini** (6 core fisik, 16 GB) sudah memenuhi baris pertama.
-- **Pilihan skenario:** skenario "lab biasa" cukup bila siswa bekerja dengan ritme masing-masing. Skenario "menekan bersamaan" diperlukan bila ada momen seperti "semua kirim sekarang" di akhir sesi atau saat ujian.
+| Skenario | Run C | Submit C (5 kasus) | Submit C++ (5 kasus) |
+|---|---:|---:|---:|
+| 1 pengguna | 0,48 s | 0,47 s | 0,88 s |
+| 12 pengguna menekan serentak, median | 1,25 s | 1,29 s | 1,77 s |
+| 12 pengguna menekan serentak, terlama | 2,0 s | 2,0 s | 3,0 s |
+
+Untuk deployment 11–12 pengguna:
+
+| Pilihan | CPU | RAM | Disk | Perkiraan waktu terlama saat 12 orang serentak |
+|---|---|---:|---|---|
+| Minimum | 6 core fisik (12 vCPU) | 8 GB | 40 GB SSD | ±2 s (C), ±3 s (C++), sama dengan laptop |
+| **Disarankan** | **8 core fisik (16 vCPU)** | **16 GB** | 40 GB SSD NVMe | ±1,5 s (C), ±2,5 s (C++) |
+| Lebih longgar | 12 core fisik (24 vCPU) | 16 GB | 40 GB SSD NVMe | ±1,2 s (C), ±1,9 s (C++) |
+
+"Core fisik" setara satu core i7-9750H. Di cloud, 1 vCPU biasanya satu hyperthread, jadi jumlah vCPU = 2 × core fisik. Di atas 12 core hampir tidak ada manfaat lagi untuk 12 pengguna: batas bawahnya adalah waktu satu pengguna (±0,5 s untuk C, ±0,9 s untuk C++).
+
+Baris "Disarankan" dipilih karena memberi ruang untuk soal yang programnya lebih berat daripada soal uji, dan untuk Linux native yang belum diukur.
+
+## Pengaturan yang mengikuti ukuran server
+
+Semua ada di [compose.yaml](compose.yaml):
+
+| Pengaturan | Aturan | 6 core | 8 core | 12 core |
+|---|---|---:|---:|---:|
+| Worker `--concurrency` | = core fisik, paling banyak jumlah pengguna serentak | 6 | 8 | 12 |
+| `RUNNER_SLOTS` | worker + 1 (untuk validator) | 7 | 9 | 13 |
+| `RUNNER_WARM` | pengguna serentak + 1 | 13 | 13 | 13 |
+| API `--workers` | 4 cukup untuk 12 pengguna | 4 | 4 | 4 |
+
+Jumlah slot tidak boleh melebihi core fisik: saat core dipakai bersama lewat hyperthread, waktu CPU program yang sama naik hingga ±2,2 kali, dan margin validasi soal hanya 2 kali.
 
 ## Data pengukuran
 
-Diukur dengan [scripts/profiling/capacity.py](scripts/profiling/capacity.py), langsung ke runner, memakai soal penjumlahan C. Pada Submit ada 1 kompilasi dan 5 kasus uji. CPU dihitung dari `/proc/stat` VM Docker, sehingga seluruh overhead (Docker Engine, runner, dan sandbox) ikut terhitung.
+Mesin: Intel i7-9750H (6 core / 12 thread), Docker Desktop dengan 12 vCPU dan 15,5 GB, konfigurasi 6 worker / 7 slot / 13 sandbox siap pakai / 4 proses API. Soal uji: penjumlahan dua bilangan, 5 kasus uji.
 
-**Mesin uji:** Intel i7-9750H (6 core / 12 thread), Docker Desktop dengan 12 vCPU dan 15,5 GB RAM, laptop tersambung ke listrik.
+**Lewat stack lengkap** ([scripts/profiling/concurrent_users.py](scripts/profiling/concurrent_users.py); waktu dari tombol ditekan sampai hasil terbaca dengan polling 0,4 detik; 12 pengguna × 3 putaran) adalah tabel di Ringkasan. Burst pertama setelah stack dinyalakan lebih lambat (terlama 4,0 s) karena proses API dan worker masih dingin.
 
-| Pekerjaan | Waktu runner saat sendirian | CPU per pekerjaan | Throughput maksimum host ini |
-|---|---:|---:|---:|
-| Run (kompilasi + 1 input) | 1,4–1,6 s | **3,8 detik-CPU** | ±1,7 per detik |
-| Submit (kompilasi + 5 kasus) | 4,2–4,7 s | **10,5 detik-CPU** | ±0,65 per detik |
+**Runner saja** ([scripts/profiling/capacity.py](scripts/profiling/capacity.py); CPU dari `/proc/stat` VM Docker, sudah termasuk Docker Engine dan pengisian kolam):
 
-| Submit serentak | Waktu runner median / maks | vCPU sibuk |
-|---:|---:|---:|
-| 1 | 4,2 / 4,5 s | 1,9 dari 12 |
-| 2 | 4,7 / 5,3 s | — |
-| 4 | 7,6 / 8,4 s | — |
-| 6 | 9,2 / 11,2 s | 6,7 dari 12 |
-| 8 | 11,6 / 12,5 s | — |
+| Pengukuran | C | C++ (`<iostream>`) |
+|---|---:|---:|
+| 1 Submit, sandbox siap pakai | 0,25–0,40 s | 0,63–1,0 s |
+| 12 Submit serentak (6 paralel): selesai semua dalam | 1,3 s | 2,6 s |
+| Biaya di jalur kritis saat burst | 0,66 detik-CPU | 1,37 detik-CPU |
+| Biaya total per Submit saat beban terus-menerus (kolam habis) | 1,70 detik-CPU | 2,24 detik-CPU |
+| Throughput terus-menerus | 3,5 Submit/detik | 2,5 Submit/detik |
 
-Throughput berhenti naik di sekitar 6 job paralel, yaitu jumlah core fisik. Hyperthread hampir tidak menambah kapasitas.
+Sebelum M5, satu Submit C memakai ±10,5 detik-CPU dan ±4,2 detik di runner.
 
-**Memori**, diukur dengan `docker stats` dan `memory.peak` cgroup:
+**Kompilasi C++ di sandbox** (1 CPU): `<iostream>` 1,6 → 0,4 s dan `<bits/stdc++.h>` 5,6–9,6 → 1,5–1,9 s berkat precompiled header. Header lain sebagai include pertama (misalnya `<vector>`) tetap ±1,3–1,7 s.
+
+**Memori** (`docker stats`, stack menganggur setelah pengujian):
 
 | Komponen | Pemakaian |
 |---|---:|
-| MariaDB (idle) | 120 MB |
-| API | 70 MB |
-| Worker | ±46 MB per proses |
-| Validator / scheduler / runner / Redis | 90 / 65 / 50 / 10 MB |
-| Kompilasi C++ dengan `<bits/stdc++.h>` | puncak 203 MB (batas sandbox 512 MB) |
-| Image (aplikasi + sandbox + MariaDB + Redis) | ±1 GB |
-| Data MariaDB saat ini | 190 MB |
+| API (4 proses) | ±545 MB |
+| MariaDB | ±110 MB |
+| Worker (6 proses) / validator / scheduler / runner / Redis | ±280 / 100 / 65 / 60 / 4 MB |
+| 13 sandbox siap pakai | 13 × 7 MB |
+| Sandbox yang sedang mengompilasi | puncak ±200 MB, plafon 512 MB |
+| Image (aplikasi 217 MB + sandbox 505 MB + MariaDB + Redis) | ±1,1 GB di disk |
 
-## Cara menghitung
+## Model untuk menghitung server lain
 
-Biaya CPU per pekerjaan hampir tetap. Karena itu, kalau N pekerjaan datang bersamaan, pengguna terakhir menunggu kira-kira:
+Dua rumus ini cocok dengan pengukuran di atas:
 
 ```text
-waktu terlama ≈ overhead tetap + N × biaya_CPU / jumlah_core
-overhead tetap ≈ 2 s (tick scheduler ≤ 1 s, polling browser 1,2 s, API dan DB)
+waktu terlama saat N orang menekan serentak ≈ 0,5 s + N × biaya_jalur_kritis / core_fisik
+kapasitas terus-menerus (pekerjaan/detik)   ≈ core_fisik / biaya_total
 ```
 
-**Pemeriksaan model:** di laptop ini (6 core), 24 Submit diprediksi selesai dalam 24 × 10,5 / 6 = 42 s, dan hasil ukurnya 37,7–38,8 s. 24 Run diprediksi 16 s, hasil ukurnya 14,7 s. Model ini sedikit konservatif.
+Pemeriksaan di laptop (6 core, N = 12): C diprediksi 0,5 + 12 × 0,66 / 6 = 1,8 s, terukur 2,0 s. C++ diprediksi 0,5 + 12 × 1,37 / 6 = 3,2 s, terukur 3,0 s. Kapasitas C diprediksi 6 / 1,70 = 3,5 per detik, terukur 3,54.
 
-**Semua menekan bersamaan:** jumlah core ≥ N × biaya / (target − 2 s).
+**Penggunaan untuk 12 pengguna:**
 
-| N | Run (target 5 s) | Submit (target 10 s) | Dipakai |
-|---:|---:|---:|---:|
-| 10 | 10 × 3,8 / 3 = 12,7 | 10 × 10,5 / 8 = 13,1 | **14 core** |
-| 20 | 20 × 3,8 / 3 = 25,3 | 20 × 10,5 / 8 = 26,3 | **28 core** |
+- *Semua menekan serentak*, C++: 6 core → 3,2 s; 8 core → 2,6 s; 12 core → 1,9 s.
+- *Lab biasa*: bila tiap siswa menekan Run atau Submit setiap 10 detik (sangat aktif), bebannya 1,2 pekerjaan per detik. Itu sepertiga kapasitas laptop untuk C dan separuhnya untuk C++, dan hampir semua pekerjaan mendapat sandbox siap pakai (kolam diisi ulang satu per satu; membuat satu sandbox butuh ±0,6 detik, jadi perkiraannya ±1,5 per detik).
 
-**Lab biasa:** asumsi beban berat untuk setiap siswa adalah 1 Run per 30 detik dan 1 Submit per 2 menit. Kebutuhan rata-rata per siswa = 3,8/30 + 10,5/120 ≈ **0,22 core**. Utilisasi dijaga ≤ 50% agar antrean akibat kebetulan tetap pendek:
+**RAM:** layanan ±1,2 GB + worker 46 MB × jumlah worker + sandbox 512 MB × slot (plafon, bukan pemakaian umum) + OS dan Docker ±1,5 GB. Hasilnya 7 slot → 6,6 GB, 9 slot → 7,7 GB, 13 slot → 9,9 GB; dibulatkan ke 8 GB dan 16 GB.
 
-| N | Rata-rata | ×2 ruang aman | Dipakai |
-|---:|---:|---:|---:|
-| 10 | 2,2 core | 4,4 | **6 core** |
-| 20 | 4,4 core | 8,8 | **10 core** |
+**Disk:** image ±1,1 GB. Setiap kiriman menyimpan source (≤ 32 KB) dan hasilnya; 12 siswa × 300 aksi per hari menambah kurang dari 20 MB per hari. SSD diperlukan karena setiap pekerjaan membuat container baru.
 
-**Worker dan slot:** jumlah worker = min(N, core fisik), dan `RUNNER_SLOTS` = worker + 1 (satu untuk validator). Jangan melebihi jumlah core fisik, karena hyperthread membuat program siswa melambat hingga ±1,8 kali dan bisa divonis TLE (lihat [MILESTONE_PERBAIKAN.md](MILESTONE_PERBAIKAN.md#m12-tle-palsu-saat-ramai)).
+## Batasan
 
-**RAM:** layanan ±0,6 GB + worker 46 MB × worker + sandbox 0,5 GB × slot + OS dan Docker ±1,5 GB. Sandbox dihitung memakai batasnya (512 MB), bukan pemakaian umumnya (≤ 203 MB), supaya host tidak pernah kehabisan memori. Hasilnya: 7 slot → 5,9 GB, 11 slot → 8,1 GB, 21 slot → 13,5 GB. Angka ini dibulatkan ke ukuran RAM standar.
-
-**Disk:** image ±1 GB. Setiap Submit menyimpan source (≤ 32 KB) dan hasilnya. 20 siswa × 300 aksi per hari menambah sekitar 30 MB per hari, atau ±1 GB per semester. Disk 40 GB SSD sudah cukup longgar untuk log dan backup lokal. Pakai SSD karena setiap fase menjalankan ulang container.
-
-## Yang terjadi di laptop ini bila semua menekan bersamaan
-
-| N | Run terakhir tampil | Submit terakhir tampil |
-|---:|---:|---:|
-| 10 | ±8,5 s | ±19,5 s |
-| 20 | ±15 s | ±37 s |
-
-Untuk 10 siswa, hasilnya masih bisa diterima: menunggu maksimal ±20 detik terjadi hanya pada momen serentak. Untuk 20 siswa, waktu tunggu Submit terlalu lama.
-
-## Cara terhemat: kurangi biaya per Submit, bukan tambah server
-
-Dari 10,5 detik-CPU per Submit, kompilasinya hanya ±0,7 detik-CPU, dan program penjumlahan berjalan dalam hitungan milidetik. Sisanya, sekitar 1,5 detik-CPU per fase × 6 fase, habis untuk memulai ulang container dan bootstrap Python pada setiap kasus uji.
-
-Bila semua kasus uji dijalankan dalam **satu kali start** (bootstrap menjalankan program per kasus sebagai proses anak), biaya Submit diperkirakan turun ke ±4 detik-CPU, kira-kira sama dengan Run. Kebutuhan core skenario serentak pun turun hampir 2,5 kali: 20 pengguna cukup dengan ±12 core, bukan 28. Isolasi antar-kasus tetap bisa dijaga, karena setiap kasus tetap memakai proses dan direktori kerja baru. Namun ini mengubah protokol sandbox dan perlu dirancang serta diuji tersendiri. Perkiraan ini belum diukur.
-
-## Batasan dan risiko
-
-- **Angka ini berasal dari satu laptop dengan Docker Desktop.** Linux native di server tidak memakai lapisan VM, sehingga kemungkinan lebih hemat. CPU server juga bisa lebih cepat atau lebih lambat per core. **Ukur ulang di server tujuan** dengan perintah di bawah, lalu masukkan biaya CPU hasil ukur ke rumus di atas.
-- **Soal yang diukur hanyalah soal paling ringan** (program berjalan dalam milidetik). Soal yang programnya memakai 1 detik CPU per kasus menambah ±5 detik-CPU per Submit (5 kasus).
-- **Kemungkinan TLE palsu dari batas CPU baru (M1):** pada tiga pengukuran pertama, saat laptop **memakai baterai**, sekitar 20% Submit penjumlahan mendapat TLE palsu pada kasus pertama setelah kompilasi, dan hanya terjadi dengan image `gcc12-v3`. Masalah ini tidak terulang pada 128 job berikutnya setelah laptop tersambung ke listrik. Penyebabnya belum dipastikan. Jalankan server dengan daya AC dan profil performa tinggi, dan lihat catatan di [MILESTONE_PERBAIKAN.md](MILESTONE_PERBAIKAN.md).
-- **Kuota admission tidak menghambat 20 pengguna:** 20 pending per kelas dan 50 global. Untuk lebih dari 20 siswa dalam satu kelas, kuota kelas akan menolak dengan 429.
+- **Soal uji adalah soal paling ringan.** Program siswa di sini berjalan dalam milidetik. Soal yang programnya memakai t detik CPU per kasus menambah t × jumlah kasus ke biaya tiap Submit. Contoh: 0,5 detik × 5 kasus = 2,5 detik-CPU; 12 Submit serentak pada 8 core menambah ±3,8 detik. Untuk soal seperti itu, 5 detik saat semua menekan serentak tidak selalu tercapai, berapa pun cepatnya sistem ini.
+- **Semua angka berasal dari satu laptop dengan Docker Desktop.** Linux native tidak memakai lapisan VM dan kemungkinan lebih cepat, tetapi belum diukur. Angka untuk 8 dan 12 core adalah hasil model, bukan pengukuran.
+- **Dalam uji serentak, 12 pengguna mengirim kode yang sama.** Tidak ada cache kompilasi, jadi ini tidak menguntungkan hasil, tetapi kode siswa yang lebih panjang akan dikompilasi lebih lama.
+- **Kuota admission tidak menghambat 12 pengguna:** 10 pekerjaan tertunda per akun, 20 per kelas, 50 global.
+- Uji beban 30 pengguna belum diulang setelah M5.
 
 ## Mengukur ulang di server tujuan
 
 ```bash
-docker compose up -d --no-deps runner
-docker compose run --rm --no-deps -v ./scripts/profiling/capacity.py:/tmp/capacity.py:ro api python /tmp/capacity.py judge 24 6
-docker compose run --rm --no-deps -v ./scripts/profiling/capacity.py:/tmp/capacity.py:ro api python /tmp/capacity.py run 24 6
-docker compose down
+docker compose --profile tools build && docker compose up -d
+
+# Lewat stack lengkap: 12 pengguna, 3 putaran (kredensial admin lewat stdin, lihat scripts/test-integration.ps1)
+echo '{"username":"<admin>","password":"<password>"}' | docker compose exec -T api python scripts/profiling/concurrent_users.py 12 3
+
+# Runner saja: biaya CPU per pekerjaan. Nilai paralel tidak boleh melebihi RUNNER_SLOTS.
+docker compose run --rm --no-deps -v ./scripts/profiling/capacity.py:/tmp/capacity.py:ro api python /tmp/capacity.py judge 60 6 c17
+docker compose run --rm --no-deps -v ./scripts/profiling/capacity.py:/tmp/capacity.py:ro api python /tmp/capacity.py judge 60 6 cpp17
 ```
 
-Isi `RUNNER_SLOTS` minimal sama dengan nilai paralel yang diuji. Skrip tidak menulis ke database.
+`concurrent_users.py` membuat akun pengajar uji lalu menonaktifkannya, dan menulis kiriman uji pada soal `sum-v1`. `capacity.py` tidak menulis ke database. Masukkan `cpu_seconds_per_job` hasil ukur ke rumus di atas.

@@ -60,6 +60,8 @@ Mengurangi slot saja ternyata tidak cukup. **Waktu CPU program yang sama juga na
 
 **Risiko terbuka (ditemukan 10 November 2026):** pada tiga pengukuran pertama dengan laptop memakai baterai, sekitar 20% Submit program penjumlahan (6 dari 32, 13 dari 48, dan 3 dari 24) mendapat TLE pada **kasus pertama setelah kompilasi**, dengan `time_ms` ±5,5 s. Masalah ini hanya terjadi dengan image `gcc12-v3`; image v2 dengan beban yang sama lulus 24/24. Setelah laptop tersambung ke listrik, 128 job berikutnya pada v3 lulus semua. Dugaan penyebabnya: kerja kernel, seperti reclaim memori saat batas memori diturunkan dari 512 MB (kompilasi) ke 128 MB (eksekusi), ikut terhitung sebagai waktu CPU proses. Hipotesis ini belum dibuktikan. Jika muncul lagi, pilihannya adalah memberi `RLIMIT_CPU` hard limit = batas + 1 s, atau menurunkan batas memori sebelum kompilasi selesai. Sebelum itu, ukur exit code dengan `scripts/profiling/capacity.py` pada 12 paralel.
 
+**Pembaruan 10 November 2026:** mekanisme batas waktu diganti di M5.3 (waktu CPU dari `wait4`, tanpa mengubah batas memori container di tengah pekerjaan). Sejak itu tidak ada TLE palsu pada lebih dari 500 pekerjaan uji, termasuk saat laptop memakai baterai. Butir keterbatasan di atas tentang bootstrap Python dan `time_ms` juga sudah tidak berlaku.
+
 **Belum diverifikasi:**
 - [ ] Uji beban 30 pengguna pada stack lengkap: tidak ada 503 `provider not ready`, runner tetap `healthy`, dan validasi yang berjalan bersamaan berakhir `completed`. Pada 10 November 2026 image aplikasi sudah dibangun ulang dan suite `smoke` (9 skenario judge pada stack lengkap) lulus, tetapi uji beban 30 pengguna tetap belum dijalankan.
 
@@ -116,7 +118,7 @@ Mengurangi slot saja ternyata tidak cukup. **Waktu CPU program yang sama juga na
 
 **Tujuan:** mengurangi beban DB yang tidak perlu. Milestone ini dikerjakan setelah M1–M3 stabil.
 
-- [ ] **M4.1** Di `current_user` ([app/auth.py:166-167](app/auth.py#L166-L167)), tulis `last_seen` hanya bila nilainya lebih tua dari 60 detik.
+- [x] **M4.1** (selesai di M5.6) Di `current_user` ([app/auth.py:166-167](app/auth.py#L166-L167)), tulis `last_seen` hanya bila nilainya lebih tua dari 60 detik.
 - [ ] **M4.2** Hilangkan query satu per baris (N+1): ganti query `Attempt` per baris dengan `join` di `list_submissions` ([app/main.py:295](app/main.py#L295)), dan ambil enrollment, step, serta course sekaligus di `catalog` ([app/learning.py:450-458](app/learning.py#L450-L458)), seperti yang sudah dilakukan `enrollment_summaries`.
 - [ ] **M4.3** Pindahkan `LAPORAN_*.md` ke `docs/laporan/` dan perbarui tautannya. Simpan `artifacts/performance/` (49 MB, berisi 11 salinan kode profil) di luar repositori atau dalam arsip per sesi uji.
 
@@ -145,26 +147,59 @@ Mengurangi slot saja ternyata tidak cukup. **Waktu CPU program yang sama juga na
 
 - [x] Editor memeriksa hasil setiap 0,4 detik selama 15 detik pertama, lalu kembali ke 1,2 detik ([web/app.js](web/app.js)). Diuji dengan `npm run test:compiler` (4 skenario lulus).
 
-### M5.3 Semua kasus uji dalam satu kali start container (rencana)
+### M5.3 Semua kasus uji dalam satu kali start container (selesai 10 November 2026)
 
-**Masalah:** satu Submit dengan 5 kasus uji memakai ±10,5 detik-CPU dan ±4,2 detik di runner, padahal kompilasinya hanya ±0,7 detik. Sisanya habis karena container dinyalakan ulang untuk kompilasi dan untuk setiap kasus uji (6 kali start, masing-masing ±0,6–0,9 detik termasuk bootstrap Python).
+**Masalah:** satu Submit dengan 5 kasus uji menyalakan container 6 kali (kompilasi + tiap kasus): ±4,2 detik di runner dan ±10,5 detik-CPU, padahal kompilasi C hanya ±0,1 detik.
 
-**Rancangan:** runner mengirim satu payload berisi source dan semua input. Bootstrap di sandbox mengompilasi, lalu menjalankan program untuk tiap kasus sebagai proses anak, dan mengembalikan satu JSON berisi hasil per kasus.
+- [x] Bootstrap ([sandbox/entrypoint.py](sandbox/entrypoint.py)) mengompilasi, lalu menjalankan program per input sebagai proses anak, dan mengirim satu baris JSON berisi hasil mentah. Jawaban acuan dan pembandingan token tetap di runner ([runner/engine.py](runner/engine.py)).
+- [x] Isolasi antar-input dibuat eksplisit, menggantikan restart container:
+  - bootstrap memasang `PR_SET_DUMPABLE=0`, sehingga program tidak bisa ptrace, membaca `/proc/1/mem`, atau menulis ke `/proc/1/fd/1`. Kontrol negatif: tanpa pengaturan ini, program memang bisa menulis ke stdout bootstrap (memalsukan hasil);
+  - setelah setiap input, PID 1 menjalankan `kill(-1, SIGKILL)` yang menjangkau proses yang melepaskan diri (`setsid`), lalu mengosongkan `/work`, `/tmp`, dan `/dev/shm`, dan menulis ulang executable;
+  - objek IPC SysV/POSIX dimatikan lewat sysctl container (`kernel.shmmni=0`, `kernel.msgmni=0`, `kernel.sem`, `fs.mqueue.queues_max=0`); `add_key` sudah diblokir seccomp bawaan Docker.
+- [x] Batas waktu: waktu CPU proses anak diukur dari `wait4`. `RLIMIT_CPU` lunak = batas (SIGXCPU), keras = batas + 1 detik. Jam dinding 2 × batas + 1 detik hanya pengaman; nilainya diturunkan dari 3 × + 2 agar 10 kasus pada batas maksimum tetap selesai di dalam timeout 140 detik milik worker.
+- [x] Batas memori: container tetap 512 MiB (kebutuhan compiler). Batas soal ditegakkan bootstrap dengan memantau memori residen program tiap 20 ms dan memeriksa puncaknya; proses anak diberi `oom_score_adj=1000` agar OOM tidak pernah mengenai bootstrap.
+- [x] `time_ms` yang tampil ke peserta kini waktu CPU program, bukan waktu dinding container.
+- [x] Image `gcc12-v4`. Uji baru di [tests/test_sandbox_reuse.py](tests/test_sandbox_reuse.py): program mencoba mengirim sinyal ke PID 1, memalsukan hasil, membaca memori/lingkungan bootstrap, ptrace, membuat shm/msg/sem/mqueue/keyring, mengganti executable, dan meninggalkan direktori terkunci; semuanya ditolak dan input berikutnya tetap dinilai benar.
 
-- [ ] Fase `judge` baru di [sandbox/entrypoint.py](sandbox/entrypoint.py): kompilasi, lalu per kasus `fork`/`exec` program dengan `RLIMIT_CPU`, stdin dari berkas, stdout/stderr dibatasi `output_bytes`, dan waktu CPU diambil dari `wait4` (ini sekaligus memberi `time_ms` yang akurat dan batas waktu di bawah 1 detik).
-- [ ] Isolasi antar-kasus yang sekarang didapat dari restart container harus diganti secara eksplisit: bunuh seluruh grup proses setelah tiap kasus, kosongkan `/work` dan `/tmp`, dan jalankan program sebagai UID yang berbeda dari bootstrap agar program tidak bisa mengubah bootstrap, membaca input kasus berikutnya, atau memalsukan JSON hasil.
-- [ ] Batas memori: sekarang 512 MB untuk kompilasi lalu diturunkan ke batas soal lewat `container.update`. Dalam satu start, batas program perlu dipasang per proses anak (`RLIMIT_AS` atau cgroup anak) dan vonis MLE dideteksi tanpa `OOMKilled` milik container.
-- [ ] Expected output tetap tidak boleh masuk sandbox; pembandingan token tetap di runner.
-- [ ] [runner/engine.py](runner/engine.py) `judge_in_sandbox` menjadi satu `execute`; image naik ke `gcc12-v4`.
-- [ ] Perbarui [tests/test_sandbox_reuse.py](tests/test_sandbox_reuse.py): uji isolasi berkas dan proses antar-kasus harus tetap lulus, ditambah uji bahwa program tidak bisa memalsukan hasil kasus lain.
-- [ ] Ukur ulang dengan `scripts/profiling/capacity.py` dan perbarui [LAPORAN_KEBUTUHAN_SERVER.md](LAPORAN_KEBUTUHAN_SERVER.md).
+### M5.4 Kolam sandbox siap pakai dan jawaban tanpa menunggu container (selesai 10 November 2026)
 
-**Kriteria selesai:**
-- Submit 5 kasus saat sendirian ≤ 2 detik di runner (sekarang ±4,2) dan ≤ 5 detik-CPU (sekarang ±10,5).
-- Semua uji sandbox dan suite `smoke` lulus, termasuk skenario loop tak berujung, output berlebihan, dan isolasi.
-- Risiko TLE palsu `RLIMIT_CPU` dari M1 diperiksa ulang pada protokol baru (12 paralel, 0 TLE pada program penjumlahan).
+- [x] Runner membuat dan menjalankan container saat menganggur (`RUNNER_WARM`, bawaan 13). Pekerjaan mengambil satu, mengirim payload, dan menjawab begitu baris hasil tiba. Setiap pekerjaan tetap mendapat container sendiri; tidak ada yang dipakai ulang.
+- [x] Penghapusan container bekas dan pengisian kolam dikerjakan satu thread latar belakang; pengisian menunggu pekerjaan yang sedang berjalan kecuali kolam kosong. Panggilan Docker `wait`, `inspect`, dan `remove` tidak lagi berada di waktu tunggu peserta, dan kode pengawas tenggat lama (timer, race exit) dihapus.
+- [x] Sandbox siap pakai yang mati saat menganggur diganti sekali dengan container baru. Reaper tidak menghapus container yang masih dimiliki proses runner.
 
-**Risiko:** ini mengubah batas keamanan sandbox. Jangan digabung dengan perubahan lain, dan pertahankan `gcc12-v3` sebagai jalan kembali.
+### M5.5 Precompiled header C++ (selesai 10 November 2026)
+
+- [x] Image sandbox memuat precompiled header `<iostream>` dan `<bits/stdc++.h>`, dibuat oleh bootstrap sendiri (`entrypoint.py pch`) dengan daftar flag yang sama dengan kompilasi, dan build image gagal bila GCC tidak memakainya. Hasil ukur di sandbox: `<iostream>` 1,6 → 0,4 detik, `<bits/stdc++.h>` 5,6–9,6 → 1,5–1,9 detik.
+- [x] Header rintisan diletakkan di samping `.gch`; tanpa itu include berulang atau bersarang dari header yang sama gagal dikompilasi (tertangkap oleh uji `test_precompiled_headers_do_not_change_results`).
+- Ukuran image naik dari 380 MB ke 505 MB. Header lain sebagai include pertama tidak dipercepat.
+
+### M5.6 API beberapa proses dan sesi tanpa tulis per permintaan (selesai 10 November 2026)
+
+- [x] API berjalan dengan 4 proses uvicorn ([compose.yaml](compose.yaml)); semua state bersama sudah berada di MariaDB.
+- [x] `last_seen` sesi ditulis paling sering sekali per menit, bukan pada setiap permintaan (ini M4.1). Polling hasil menjadi operasi baca saja.
+
+### Hasil M5
+
+Laptop pengembangan (i7-9750H, 6 core / 12 thread, Docker Desktop), lewat stack lengkap dengan polling 0,4 detik, diukur dengan [scripts/profiling/concurrent_users.py](scripts/profiling/concurrent_users.py):
+
+| Skenario | Sebelum M5 | Sesudah M5 |
+|---|---:|---:|
+| 1 pengguna, Run C | ±2,0 s | **0,48 s** |
+| 1 pengguna, Submit C (5 kasus) | ±4,95 s | **0,47 s** |
+| 1 pengguna, Submit C++ | — | **0,88 s** |
+| 12 pengguna serentak, Run C | ±10 s (model) | median 1,25 s, **maks 2,0 s** |
+| 12 pengguna serentak, Submit C | ±23 s (model) | median 1,29 s, **maks 2,0 s** |
+| 12 pengguna serentak, Submit C++ | — | median 1,77 s, **maks 3,0 s** |
+
+Burst pertama setelah stack dinyalakan lebih lambat (maks 4,0 s) karena proses API dan worker masih dingin. Biaya CPU per Submit C turun dari ±10,5 menjadi ±1,7 detik-CPU. Target ≤ 5 detik untuk 12 pengguna serentak tercapai di laptop ini; kebutuhan server untuk deployment ada di [LAPORAN_KEBUTUHAN_SERVER.md](LAPORAN_KEBUTUHAN_SERVER.md).
+
+**Keterbatasan dan risiko M5:**
+- Batas keamanan sandbox berubah dan baru diuji oleh uji otomatis di repo ini, belum ditinjau pihak lain. Image `gcc12-v3` dan commit sebelumnya adalah jalan kembali.
+- Program jahat yang membuat pohon direktori sangat dalam membuat pekerjaannya sendiri gagal sebagai kesalahan infrastruktur (tanpa nilai), bukan vonis.
+- Memori diukur per proses; program yang fork bisa memakai hingga plafon 512 MiB.
+- Waktu CPU program yang sama naik hingga ±2,2 kali saat 7 pekerjaan berat berjalan paralel (terukur 0,64 → maks 1,41 detik, 0 TLE palsu dari 100 pekerjaan). Margin validasi 2 kali hampir habis pada kasus terburuk.
+- Alat profil lama (`test-judging-profile.ps1`, `test-slot-sweep.ps1`) belum disesuaikan dengan protokol baru.
+- Validasi soal oleh pengajar masih menunggu tick scheduler.
 
 ---
 

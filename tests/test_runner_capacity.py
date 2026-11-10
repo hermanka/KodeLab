@@ -12,8 +12,10 @@ import anyio.to_thread
 import runner.main as main
 
 class FakeRunner:
-    def __init__(self, image):
-        self.client = SimpleNamespace(close=lambda: None)
+    def __init__(self, image, warm=0):
+        pass
+    def close(self):
+        pass
     def cleanup_expired(self):
         pass
 
@@ -49,8 +51,10 @@ import runner.main as main
 release = threading.Event()
 
 class FakeRunner:
-    def __init__(self, image):
-        self.client = SimpleNamespace(close=lambda: None)
+    def __init__(self, image, warm=0):
+        pass
+    def close(self):
+        pass
     def cleanup_expired(self):
         pass
     def health(self):

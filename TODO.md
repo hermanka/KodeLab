@@ -85,4 +85,4 @@ Rincian, file, dan kriteria selesai ada di [MILESTONE_PERBAIKAN.md](MILESTONE_PE
 - [ ] M2 — Siap dibuka untuk satu kelas (IP di belakang proxy, kuota login, pemasangan plugin).
 - [ ] M3 — Perampingan kode.
 - [ ] M4 — Performa dan kerapian.
-- [ ] M5 — Run dan Submit lebih cepat. Selesai: kirim langsung ke worker (M5.1) dan polling 0,4 detik (M5.2). Belum: semua kasus uji dalam satu start container (M5.3).
+- [x] M5 — Run dan Submit lebih cepat: kirim langsung ke worker, satu start container per pekerjaan, kolam sandbox siap pakai, precompiled header C++, API 4 proses. 12 pengguna serentak: maksimal 2–3 detik di laptop pengembangan.

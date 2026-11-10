@@ -163,8 +163,10 @@ def current_user(request: Request, credentials: HTTPAuthorizationCredentials | N
         if not secrets.compare_digest(digest(csrf), auth_session.csrf_hash):
             raise HTTPException(403, "CSRF token required")
     request.state.session_hash = auth_session.token_hash
-    auth_session.last_seen = now
-    db.commit()
+    if auth_session.last_seen + timedelta(minutes=1) <= now:
+        # Result polling arrives several times per second; one write per minute keeps the 30-minute idle timeout exact enough.
+        auth_session.last_seen = now
+        db.commit()
     return user
 
 

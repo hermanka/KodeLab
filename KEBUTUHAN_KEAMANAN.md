@@ -203,3 +203,7 @@ Verifikasi: 72 pengujian backend lulus; satu tes MariaDB sengaja diskip pada sui
 - Source dan metadata versi immutable disimpan di database dan tercakup backup. Revisi soal/job dipin; cache source lokal worker dapat diregenerasi. Penghapusan plugin yang masih dirujuk soal/histori ditolak.
 - Nonaktif tidak membatalkan pekerjaan diterima. Jika plugin berbahaya, hentikan worker dan tangani kredensial/data yang terdampak; jangan menganggap nonaktif sebagai isolasi atau penghentian kode.
 - Installer tidak mengeksekusi pip/shell, tidak memasang dependensi otomatis, dan tidak mengunduh paket dari URL. Eksekusi plugin tetap dibatasi durasi task Celery; kesalahan menjadi retry/system_error, bukan nilai nol.
+
+## Catatan perubahan sandbox (10 November 2026)
+
+Kompilasi dan seluruh input kini berjalan dalam satu start container, dan runner menyiapkan container lebih dulu (tetap satu container baru per pekerjaan). Isolasi antar-input yang sebelumnya diperoleh dari restart container digantikan oleh mekanisme eksplisit di bootstrap: `PR_SET_DUMPABLE=0`, `kill -1` dari PID 1, pengosongan direktori tulis, dan sysctl yang menonaktifkan IPC SysV/POSIX. Rincian dan pengujiannya ada di [MILESTONE_PERBAIKAN.md](MILESTONE_PERBAIKAN.md#m53-semua-kasus-uji-dalam-satu-kali-start-container-selesai-10-november-2026) dan `tests/test_sandbox_reuse.py`. Mekanisme ini belum ditinjau pihak lain; tinjauan keamanan independen tetap menjadi syarat sebelum deployment publik.

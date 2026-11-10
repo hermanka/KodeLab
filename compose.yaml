@@ -65,6 +65,8 @@ services:
   api:
     <<: *app
     environment: *env
+    # Several processes: admission and result polling are CPU-bound Python; all shared state is in MariaDB.
+    command: [uvicorn, app.main:app, --host, 0.0.0.0, --port, '8000', --workers, '4']
     networks: [platform, ingress]
     ports: ['127.0.0.1:${API_PORT:-8000}:8000']
     depends_on:
@@ -109,8 +111,10 @@ services:
     user: '0:0'
     environment:
       RUNNER_TOKEN: ${RUNNER_TOKEN:?Set RUNNER_TOKEN in .env}
-      SANDBOX_IMAGE: judgementsystem-sandbox:gcc12-v3
+      SANDBOX_IMAGE: judgementsystem-sandbox:gcc12-v4
       RUNNER_SLOTS: '7'
+      # Prepared sandboxes; sized for the users who may press Run/Submit at once, not for the slots.
+      RUNNER_WARM: '13'
     command: [uvicorn, runner.main:app, --host, 0.0.0.0, --port, '8001', --workers, '1']
     volumes: [/var/run/docker.sock:/var/run/docker.sock]
     healthcheck:
@@ -122,7 +126,7 @@ services:
   sandbox-image:
     profiles: [tools]
     build: ./sandbox
-    image: judgementsystem-sandbox:gcc12-v3
+    image: judgementsystem-sandbox:gcc12-v4
     command: ['--help']
     network_mode: none
 

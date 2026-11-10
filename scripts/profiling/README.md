@@ -51,3 +51,7 @@ Jika cohort gagal/tidak lengkap, sweep berhenti setelah pemulihan layanan. `-Res
 ## Kapasitas host
 
 `capacity.py` mengukur detik-CPU per Run atau Submit dan throughput runner, langsung ke runner tanpa database. Cara pakai dan cara memakai hasilnya untuk menghitung kebutuhan server ada di [LAPORAN_KEBUTUHAN_SERVER.md](../../LAPORAN_KEBUTUHAN_SERVER.md).
+
+`concurrent_users.py` mengukur waktu tunggu N pengguna yang menekan Run/Submit pada detik yang sama lewat stack lengkap (API, antrean, worker, runner, polling 0,4 detik); cara pakainya ada di docstring skrip.
+
+**Catatan:** `test-judging-profile.ps1`, `test-slot-sweep.ps1`, dan instrumentasi di folder ini dibuat untuk protokol sandbox lama (kompilasi dan tiap input sebagai fase terpisah). Sejak image `gcc12-v4` alat itu belum disesuaikan dan tidak boleh dipakai tanpa perbaikan; gunakan `capacity.py` dan `concurrent_users.py`.
