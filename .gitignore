@@ -13,3 +13,4 @@ node_modules/
 artifacts/*.png
 artifacts/*.json
 plugin/installed/
+research/
