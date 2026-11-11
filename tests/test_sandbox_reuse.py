@@ -1,4 +1,5 @@
 """Real Docker regression checks, enabled explicitly inside the trusted runner image."""
+import json
 import os
 import time
 from uuid import uuid4
@@ -219,3 +220,61 @@ def test_warm_pool_gives_each_job_its_own_prepared_container_and_cleans_up():
     finally:
         runner.close()
     assert not runner.live and not runner.pool
+
+
+# Negative control for M1 (PR_SET_DUMPABLE): a minimal supervisor runs as PID 1 in the sandbox image with the
+# production hardening, once with M1 and once without, and a same-UID child probes it. Production code is not
+# changed for this; the supervisor mirrors only the part of the bootstrap that M1 protects.
+PROBE = '''
+import ctypes, json, os
+def can(path, flags):
+    try:
+        os.close(os.open(path, flags))
+        return True
+    except OSError:
+        return False
+libc = ctypes.CDLL(None, use_errno=True)
+yama = "/proc/sys/kernel/yama/ptrace_scope"
+print(json.dumps({
+    "write_supervisor_stdout": can("/proc/1/fd/1", os.O_WRONLY),
+    "read_supervisor_environ": can("/proc/1/environ", os.O_RDONLY),
+    "read_supervisor_memory": can("/proc/1/mem", os.O_RDONLY),
+    "ptrace_supervisor": libc.ptrace(16, 1, None, None) == 0,
+    "yama_ptrace_scope": open(yama).read().strip() if os.path.exists(yama) else None,
+}))
+'''
+SUPERVISOR = '''
+import ctypes, subprocess, sys
+libc = ctypes.CDLL(None)
+if sys.argv[1] == "protected":
+    libc.prctl(4, 0)  # PR_SET_DUMPABLE = 0, as the real bootstrap does first
+child = subprocess.run(["python3", "-I", "-c", sys.argv[2]], capture_output=True, text=True,
+                       preexec_fn=lambda: libc.prctl(4, 1))  # the program itself is dumpable, as in production
+print(child.stdout, end="")
+'''
+
+
+def probe_supervisor(mode):
+    client = docker.from_env()
+    try:
+        # Same hardening as DockerRunner.create_sandbox, minus resource limits that do not affect /proc access.
+        output = client.containers.run(
+            os.environ["SANDBOX_IMAGE"], entrypoint=["python3", "-I", "-c", SUPERVISOR], command=[mode, PROBE],
+            user="65534:65534", cap_drop=["ALL"], security_opt=["no-new-privileges:true"],
+            network_mode="none", read_only=True, pids_limit=32, remove=True,
+            labels={"judgementsystem.sandbox": "1", "judgementsystem.expires": str(time.time() + 60)})
+    finally:
+        client.close()
+    return json.loads(output)
+
+
+def test_negative_control_without_m1_the_program_can_forge_results():
+    """The threat is real on the hardened container: without M1 the program reaches PID 1's stdout."""
+    exposed = probe_supervisor("unprotected")
+    assert exposed["write_supervisor_stdout"] is True  # result forgery (A1)
+    assert exposed["read_supervisor_environ"] is True
+    # /proc/1/mem and ptrace depend on the host's Yama setting, so without M1 they are recorded, not asserted.
+    protected = probe_supervisor("protected")
+    assert not any(protected[key] for key in
+                   ("write_supervisor_stdout", "read_supervisor_environ", "read_supervisor_memory", "ptrace_supervisor"))
+    print("NEGATIVE_CONTROL", json.dumps({"without_m1": exposed, "with_m1": protected}))
