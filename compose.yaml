@@ -114,7 +114,8 @@ services:
       RUNNER_TOKEN: ${RUNNER_TOKEN:?Set RUNNER_TOKEN in .env}
       SANDBOX_IMAGE: judgementsystem-sandbox:gcc12-v4
       RUNNER_SLOTS: '7'
-      # Prepared sandboxes; sized for the users who may press Run/Submit at once, not for the slots.
+      # Prepared sandboxes (js-warm-*): peak simultaneous Run/Submit users + 1, not the slots.
+      # How to adjust: LAPORAN_KEBUTUHAN_SERVER.md, section "Menyesuaikan jumlah kolam sandbox".
       RUNNER_WARM: '13'
     command: [uvicorn, runner.main:app, --host, 0.0.0.0, --port, '8001', --workers, '1']
     volumes: [/var/run/docker.sock:/var/run/docker.sock]

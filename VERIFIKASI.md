@@ -1,5 +1,9 @@
 # Verifikasi fondasi C/C++
 
+## Kolam sandbox untuk 20 pengguna serentak (11 November 2026)
+
+`scripts/profiling/concurrent_users.py 20 3` pada stack lengkap, laptop tersambung listrik, kode tidak diubah; kolam 21 dipasang lewat override Compose sementara. Dua ulangan per konfigurasi dengan urutan dibalik. Waktu terlama sampai hasil tampil, kolam 13 lalu kolam 21: Run C 6,07/5,38 s → 3,54/2,10 s; Submit C 4,89/6,97 s → 2,55/2,75 s; Submit C++ 4,70/6,01 s → 4,51/4,22 s. Median 1,35–2,47 s pada keduanya. Permintaan paling lambat diterima API setelah 0,66–2,66 s. Data uji yang ditambahkan: sekitar 90 akun pengajar uji (dinonaktifkan) dan sekitar 700 kiriman pada `sum-v1`. Cara penyesuaian `RUNNER_WARM` dicatat di [LAPORAN_KEBUTUHAN_SERVER.md](LAPORAN_KEBUTUHAN_SERVER.md#menyesuaikan-jumlah-kolam-sandbox-runner_warm).
+
 ## Milestone M5.3–M5.6: satu start, kolam sandbox, precompiled header (10 November 2026)
 
 Image aplikasi dan sandbox (`gcc12-v4`) dibangun ulang. Suite backend: **110 passed, 21 skipped**. Uji sandbox Docker (`RUN_SANDBOX_TESTS=1`): **37 passed** bersama uji runner, termasuk percobaan menjangkau bootstrap, isolasi antar-input, kolam siap pakai, dan precompiled header. Suite `smoke`, `smoke_authoring`, dan `smoke_plugins` lulus pada stack lengkap. `npm run test:browser` (8 kelompok) dan `npm run test:compiler` (4 skenario) lulus; uji browser sebelumnya gagal karena daftar akun admin berhenti di 100 akun, dan itu sudah diperbaiki.

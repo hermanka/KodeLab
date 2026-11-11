@@ -34,10 +34,58 @@ Semua ada di [compose.yaml](compose.yaml):
 |---|---|---:|---:|---:|
 | Worker `--concurrency` | = core fisik, paling banyak jumlah pengguna serentak | 6 | 8 | 12 |
 | `RUNNER_SLOTS` | worker + 1 (untuk validator) | 7 | 9 | 13 |
-| `RUNNER_WARM` | pengguna serentak + 1 | 13 | 13 | 13 |
+| `RUNNER_WARM` | pengguna serentak + 1, tidak bergantung pada core (lihat bagian berikut) | 13 | 13 | 13 |
 | API `--workers` | 4 cukup untuk 12 pengguna | 4 | 4 | 4 |
 
 Jumlah slot tidak boleh melebihi core fisik: saat core dipakai bersama lewat hyperthread, waktu CPU program yang sama naik hingga ±2,2 kali, dan margin validasi soal hanya 2 kali.
+
+## Menyesuaikan jumlah kolam sandbox (`RUNNER_WARM`)
+
+Runner menyiapkan sejumlah container sandbox lebih dulu. Container ini terlihat di `docker ps` dan Docker Desktop dengan nama `js-warm-<id>`, tetapi tidak muncul di `docker compose ps`, karena dibuat oleh runner lewat Docker API. Setiap Run atau Submit memakai satu container dari kolam **sekali saja**, lalu container itu dihapus dan runner membuat penggantinya. Tidak ada container yang dipakai oleh dua pekerjaan.
+
+Jumlahnya **statis**: dibaca sekali saat runner start. Kalau jumlah pengguna serentak berubah, pengelola mengubahnya secara manual.
+
+**Aturan:** `RUNNER_WARM` = jumlah terbesar pengguna yang mungkin menekan Run/Submit pada detik yang sama + 1. Kalau ragu, pilih angka yang lebih besar; kolam yang terlalu besar hampir tidak ada biayanya, sedangkan kolam yang terlalu kecil membuat pengguna terakhir menunggu container dibuat.
+
+**Langkah:**
+
+1. Ubah nilai di [compose.yaml](compose.yaml), bagian layanan `runner`:
+   ```yaml
+   RUNNER_WARM: '21'
+   ```
+2. Terapkan, cukup runner saja; layanan lain tidak terganggu:
+   ```bash
+   docker compose up -d runner
+   ```
+   Pekerjaan yang sedang berjalan di runner lama akan gagal sebagai kesalahan infrastruktur dan dicoba ulang otomatis. Sebaiknya lakukan di luar jam kelas.
+3. Periksa setelah ±30 detik. Jumlahnya harus sama dengan `RUNNER_WARM` saat tidak ada pekerjaan berjalan:
+   ```bash
+   docker ps -q --filter label=judgementsystem.sandbox=1 | wc -l
+   ```
+   Di PowerShell: `(docker ps -q --filter label=judgementsystem.sandbox=1).Count`
+
+**Biaya:** setiap container yang menunggu memakai sekitar 7 MB RAM dan hampir nol CPU. Batas 512 MB per container hanya berlaku saat mengompilasi, bukan memori yang dipesan. Contoh: kolam 30 ≈ 210 MB RAM.
+
+| `RUNNER_WARM` | RAM saat menunggu | Waktu mengisi penuh setelah restart | Cukup untuk pengguna serentak |
+|---:|---:|---:|---:|
+| 13 | ±90 MB | ±10 s | 12 |
+| 21 | ±150 MB | ±15 s | 20 |
+| 30 | ±210 MB | ±20 s | 29 |
+
+**Hasil ukur 20 pengguna serentak** (laptop 6 core, 6 worker, 3 putaran × 2 ulangan, 11 November 2026), waktu terlama sampai hasil tampil:
+
+| | Kolam 13 | Kolam 21 |
+|---|---:|---:|
+| Run C | 5,4–6,1 s | 2,1–3,5 s |
+| Submit C | 4,9–7,0 s | 2,6–2,8 s |
+| Submit C++ | 4,7–6,0 s | 4,2–4,5 s |
+
+Median hampir sama di kedua konfigurasi (±1,4–2,5 s); yang berubah adalah pengguna terakhir.
+
+**Yang tidak bisa diselesaikan oleh kolam:**
+- **Antrean karena CPU.** Kolam menghapus waktu menyiapkan container, bukan waktu mengompilasi dan menjalankan program. Dengan worker tetap, waktu terlama naik kira-kira 0,2 detik per pengguna tambahan untuk C++. Di laptop 6 core, Submit C++ diperkirakan melewati 5 detik sekitar 23–25 pengguna serentak (belum diukur). Untuk mengatasinya, tambah core fisik lalu naikkan worker `--concurrency` dan `RUNNER_SLOTS` sesuai tabel di atas.
+- **Lock admission di API.** Mulai sekitar 20 pengguna serentak, permintaan paling lambat baru diterima server setelah 1,7–2,7 detik, karena setiap pengiriman menghitung kuota secara bergiliran. Ini perlu perubahan kode bila targetnya jauh di atas 20.
+- **Burst berturut-turut.** Setelah burst besar, kolam diisi ulang satu per satu, sekitar 1,5 container per detik. Burst kedua yang datang kurang dari ±15 detik kemudian sebagian akan memakai container baru.
 
 ## Data pengukuran
 
