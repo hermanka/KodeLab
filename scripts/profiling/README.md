@@ -55,3 +55,5 @@ Jika cohort gagal/tidak lengkap, sweep berhenti setelah pemulihan layanan. `-Res
 `concurrent_users.py` mengukur waktu tunggu N pengguna yang menekan Run/Submit pada detik yang sama lewat stack lengkap (API, antrean, worker, runner, polling 0,4 detik); cara pakainya ada di docstring skrip.
 
 **Catatan:** `test-judging-profile.ps1`, `test-slot-sweep.ps1`, dan instrumentasi di folder ini dibuat untuk protokol sandbox lama (kompilasi dan tiap input sebagai fase terpisah). Sejak image `gcc12-v4` alat itu belum disesuaikan dan tidak boleh dipakai tanpa perbaikan; gunakan `capacity.py` dan `concurrent_users.py`.
+
+`../uji-linux-native.sh` menjalankan seluruh eksperimen makalah isolasi multi-kasus sekali jalan di Linux native: uji keamanan sandbox, matriks akses supervisor (`supervisor_access_matrix.py`), analisis mutasi M2/M3 (`channel_mutation.py`), biaya start Docker mentah, dan perbandingan S0 vs S1 (`isolation_experiment.py` + `analyze_isolation.py`). Hasilnya satu arsip `hasil-uji-linux/<host>-<waktu>.tar.gz`. Opsi: `--quick` (uji asap), `--reps N`, `--force`, `--skip-perf`.
