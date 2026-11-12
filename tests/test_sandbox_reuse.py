@@ -173,6 +173,97 @@ int main(){
     assert [(r.verdict, r.stdout.strip()) for r in result.cases] == [("ACCEPTED", denied)] * 2
 
 
+
+def test_program_inherits_only_its_own_stdio_and_cannot_open_the_payload(sandbox):
+    """No supervisor descriptor (attach socket with the payload, pidfd, epoll) leaks into the program."""
+    runner, created, starts, inspections = sandbox
+    source = r'''
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <fcntl.h>
+int main(){
+ int n; if(scanf("%d",&n)!=1) return 3;
+ DIR*d=opendir("/proc/self/fd"); int dfd=dirfd(d), count=0, maxfd=-1; struct dirent*e;
+ while((e=readdir(d))){ if(e->d_name[0]=='.') continue; int fd=atoi(e->d_name); if(fd==dfd) continue; count++; if(fd>maxfd) maxfd=fd; }
+ closedir(d);
+ char target[128]={0}; readlink("/proc/self/fd/0",target,sizeof target-1);
+ printf("%d %d %s %d %d\n",count,maxfd,target,open("/proc/1/fd/0",O_RDONLY),opendir("/proc/1/fd")==NULL?-1:0);
+}'''
+    expected = "3 2 /work/stdin -1 -1"  # stdin from the case file, stdout and stderr pipes; nothing else
+    result = runner.judge(request(source, [("1", expected), ("2", expected)]))
+    assert [(r.verdict, r.stdout.strip()) for r in result.cases] == [("ACCEPTED", expected)] * 2
+
+
+def test_inotify_watcher_cannot_carry_hidden_input_to_a_later_case(sandbox):
+    """Case 1 leaves a daemon that watches /work, remembers case 2's input and writes it after case 3's wipe.
+    Only the kill sweep (M2) can stop it: the wipe (M3) runs before the leak would be written."""
+    runner, created, starts, inspections = sandbox
+    source = r'''
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/inotify.h>
+int main(){
+ char word[64]={0}; if(scanf("%63s",word)!=1) return 3;
+ if(!strcmp(word,"watch")){
+  int ino=inotify_init1(0);
+  int wd=ino<0?-1:inotify_add_watch(ino,"/work",IN_CLOSE_WRITE);
+  if(wd>=0 && fork()==0){
+   setsid(); close(0); close(1); close(2);
+   char seen[256]={0}, last[256]={0}, buf[4096];
+   for(;;){
+    if(read(ino,buf,sizeof buf)<=0) continue;
+    int fd=open("/work/stdin",O_RDONLY); if(fd<0) continue;
+    memset(seen,0,sizeof seen); read(fd,seen,sizeof seen-1); close(fd);
+    if(last[0]){ int out=open("/dev/shm/leak",O_CREAT|O_WRONLY|O_TRUNC,0644); if(out>=0){ write(out,last,strlen(last)); close(out);} }
+    if(strncmp(seen,"watch",5)) memcpy(last,seen,sizeof last);
+   }
+  }
+  printf("watching %d\n",wd>=0); return 0;
+ }
+ if(!strcmp(word,"check")){
+  usleep(300000);
+  char leak[256]={0}; int fd=open("/dev/shm/leak",O_RDONLY);
+  if(fd>=0){ read(fd,leak,sizeof leak-1); close(fd); printf("leaked %s\n",leak); } else printf("nothing\n");
+  return 0;
+ }
+ printf("ok\n");
+}'''
+    result = runner.judge(request(source, [("watch", "watching 1"), ("SECRET-HIDDEN-INPUT", "ok"), ("check", "nothing")]))
+    assert [(r.verdict, r.stdout.strip()) for r in result.cases] == [
+        ("ACCEPTED", "watching 1"), ("ACCEPTED", "ok"), ("ACCEPTED", "nothing")]
+
+
+def test_memory_charged_by_one_case_is_released_before_the_next(sandbox):
+    """Files left in tmpfs are charged to the container's memory cgroup; the wipe must release them."""
+    runner, created, starts, inspections = sandbox
+    source = r'''
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+long current(){ FILE*f=fopen("/sys/fs/cgroup/memory.current","r"); long v=-1; if(f){ fscanf(f,"%ld",&v); fclose(f);} return v; }
+/* RLIMIT_FSIZE caps each file at 1 MiB, so the ballast is many files just under that size. */
+void fill(const char*dir,int files){ static char block[900*1024]; memset(block,'x',sizeof block); char path[64];
+ for(int i=0;i<files;i++){ snprintf(path,sizeof path,"%s/ballast%d",dir,i); FILE*f=fopen(path,"w"); if(!f) break; fwrite(block,1,sizeof block,f); fclose(f); } }
+int main(){
+ int n; if(scanf("%d",&n)!=1) return 3;
+ long before=current();
+ if(n==1){ fill("/work",54); fill("/tmp",8); }
+ printf("%ld %ld\n",before/1048576,current()/1048576);
+}'''
+    req = request(source, [("1", ""), ("2", "")], mode="run")
+    result = runner.judge(req)
+    assert [r.verdict for r in result.cases] == ["EXECUTED"] * 2, [(r.verdict, r.stderr) for r in result.cases]
+    (start1, after1), (start2, _) = [tuple(map(int, r.stdout.split())) for r in result.cases]
+    print("MEMORY_RESIDUE", {"case1_start_mb": start1, "case1_after_fill_mb": after1, "case2_start_mb": start2})
+    assert start1 >= 0, "memory.current not readable inside the sandbox"
+    assert after1 - start1 >= 40, "ballast was not charged to the container cgroup; the test proves nothing"
+    assert start2 - start1 < 16, "memory charged by case 1 survived into case 2"
+
+
 def test_wall_clock_backstop_stops_a_sleeping_program(sandbox):
     runner, created, starts, inspections = sandbox
     source = '#include <stdio.h>\n#include <unistd.h>\nint main(){int n;scanf("%d",&n);if(n==1)sleep(60);puts("OK");}'
